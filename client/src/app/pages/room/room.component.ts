@@ -140,6 +140,8 @@ export class RoomComponent implements OnInit, OnDestroy {
   public onLeaveRoom() {
     this.calls.forEach(call => call.close());
     this.peer.destroy();
+    this.onStopSharing();
+
     this.roomState = RoomState.endedCall;
   }
 }
