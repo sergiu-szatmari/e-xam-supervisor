@@ -1,0 +1,48 @@
+<section class="room">
+
+  <div class="idle-state" *ngIf="roomState === RoomState.idle">
+    <div class="form-group">
+      <span class="label">Join a room</span>
+      <input type="text" nbInput placeholder="Enter your name"
+             [ngModel]="attendeeName"
+             (ngModelChange)="onAttendeeNameType($event)">
+    </div>
+
+    <div class="form-group">
+      <input type="text" nbInput placeholder="Room ID" [(ngModel)]="roomId">
+    </div>
+    <button nbButton status="info" (click)="onJoinRoom()">Join</button>
+  </div>
+
+  <div class="call-state" [class.hidden]="roomState !== RoomState.call">
+
+    <div class="previews-container">
+      <video #user autoplay muted></video>
+      <video #screen autoplay muted></video>
+    </div>
+
+    <div class="actions">
+      <button mat-flat-button
+              *ngIf="isSharing"
+              color="accent"
+              (click)="onToggleSharing()"
+      >Pause sharing</button>
+
+      <button mat-flat-button
+              *ngIf="!isSharing"
+              color="accent"
+              (click)="onToggleSharing()"
+      >Resume sharing</button>
+
+      <button mat-flat-button
+              *ngIf="isSharing"
+              color="warn"
+              (click)="onLeaveRoom()"
+      >Disconnect</button>
+    </div>
+  </div>
+
+  <div class="ended-call-state" *ngIf="roomState === RoomState.endedCall">
+    <span>See you next time, {{ attendeeName }}! 👋</span>
+  </div>
+</section>

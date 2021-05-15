@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  .img-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70px;
+
+    img {
+      max-height: 70px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+
+      outline: none;
+      border: none;
+    }
+  }
+
+  .app-title {
+    font-weight: 600;
+    font-size: 18px;
+    text-align: center;
+    margin: 25px 0 0;
+    cursor: pointer;
+
+    outline: none;
+    border: none;
+
+    color: white;
+  }
+}

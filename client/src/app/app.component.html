@@ -1,0 +1,16 @@
+<nb-layout>
+  <nb-layout-column>
+    <mat-sidenav-container autosize>
+      <mat-sidenav #menuSidenav [fixedInViewport]="true"
+                   mode="side"
+                   opened>
+        <app-sidenav></app-sidenav>
+      </mat-sidenav>
+      <mat-sidenav-content>
+        <main class="dark-theme">
+          <router-outlet></router-outlet>
+        </main>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+  </nb-layout-column>
+</nb-layout>

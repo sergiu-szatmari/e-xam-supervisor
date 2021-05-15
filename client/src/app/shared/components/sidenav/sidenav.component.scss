@@ -1,0 +1,11 @@
+nav {
+  display: flex;
+  flex-direction: column;
+  min-width: 255px;
+  padding: 2rem 1.5rem 0.7rem;
+  height: 100%;
+
+  app-logo {
+    margin-bottom: 60px;
+  }
+}

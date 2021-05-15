@@ -1,0 +1,61 @@
+@import "~@nebular/theme/styles/globals";
+@import "styles/nebular-theme";
+@import "styles/theme-overrides";
+
+@include nb-install() {
+  @include nb-theme-global();
+}
+
+:root {
+  --font-family-primary: "Roboto", "Segoe UI", "Helvetica", sans-serif;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--font-family-primary), sans-serif;
+}
+
+// ---- buttonSpinner directive ----
+.is-button-loading {
+  color: transparent !important;
+  pointer-events: none;
+
+  &:before {
+    box-sizing: border-box;
+    position: absolute;
+    content: "";
+
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-top: -10px;
+    margin-left: -10px;
+
+    border: 2px solid white;
+    border-right: 2px solid transparent;
+
+    animation: rotate-button 0.5s linear infinite;
+  }
+}
+
+@keyframes rotate-button {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

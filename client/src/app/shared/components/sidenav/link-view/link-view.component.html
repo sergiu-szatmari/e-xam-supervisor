@@ -1,0 +1,15 @@
+<button
+  [routerLinkActive]="item.link ? 'active' : ''"
+   [routerLink]="item?.link || []"
+   class="app-link"
+   matRipple
+>
+  <nb-icon *ngIf="item.evaIcon"
+           [icon]="item.evaIcon"
+  ></nb-icon>
+
+  <mat-icon *ngIf="item.materialIcon"
+  >{{ item.materialIcon }}</mat-icon>
+
+  <span>{{ item.title }}</span>
+</button>

@@ -1,0 +1,21 @@
+@import '../../node_modules/@angular/material/theming';
+
+@include mat-core();
+
+$auto-app-primary: mat-palette($mat-indigo);
+$auto-app-accent: mat-palette($mat-orange, A200, A100, A400);
+$auto-app-warn: mat-palette($mat-red);
+
+$auto-app-theme: mat-light-theme(
+    $auto-app-primary,
+    $auto-app-accent,
+    $auto-app-warn
+);
+
+$general-typography: mat-typography-config(
+  $font-family: 'Roboto, sans-serif'
+);
+
+@include mat-core($general-typography);
+
+@include angular-material-theme($auto-app-theme);

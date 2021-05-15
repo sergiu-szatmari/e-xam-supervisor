@@ -1,0 +1,55 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: 100%;
+
+  .new-room-container {
+
+    button {
+      font-size: 1rem;
+      padding: 1rem;
+
+      display: flex;
+      align-items: center;
+    }
+
+    .attendees-previews {
+      display: flex;
+      flex-direction: column;
+      align-content: flex-start;
+      max-height: 800px;
+      max-width: 100%;
+
+      .attendee-preview {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+
+        .preview {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+
+          max-height: 100%;
+
+          video {
+            max-height: 800px;
+            max-width: 640px;
+          }
+
+          span {
+            margin-top: .5rem;
+            color: white;
+            font-size: 1rem;
+          }
+        }
+      }
+
+    }
+  }
+}

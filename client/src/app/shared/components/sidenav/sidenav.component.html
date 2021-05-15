@@ -1,0 +1,7 @@
+<nav>
+  <app-logo></app-logo>
+
+  <app-link-view *ngFor="let item of menuItems"
+                 [item]="item"
+  ></app-link-view>
+</nav>

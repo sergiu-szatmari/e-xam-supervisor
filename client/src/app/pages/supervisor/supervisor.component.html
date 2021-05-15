@@ -1,0 +1,24 @@
+<div class="container">
+
+  <div class="new-room-container">
+    <button *ngIf="!peerId"
+            nbButton
+            status="info" (click)="onCreateRoom()">
+      <nb-icon icon="people-outline"></nb-icon>
+      New room
+    </button>
+
+    <span *ngIf="peerId">
+      Room ID: {{ peerId }}
+    </span>
+
+    <div class="attendees-previews">
+      <div class="attendee-preview" *ngFor="let connection of connections | keyvalue">
+        <div class="preview" *ngFor="let connectionObj of connection.value.connections">
+          <video autoplay [srcObject]="connectionObj.stream"></video>
+          <span>{{ connection.value.peerData.name || connection.key }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

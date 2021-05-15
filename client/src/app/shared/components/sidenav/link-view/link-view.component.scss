@@ -1,0 +1,31 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+button {
+  width: 100%;
+
+  padding: 0.5em;
+  margin-bottom: 10px;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  border-radius: 8px;
+  border: 0;
+  outline: none;
+
+  color: white;
+  background-color: #222;
+  &:hover { background-color: rgba(2, 2, 2, 0.1); }
+
+  mat-icon,
+  nb-icon {
+    font-size: 24px;
+    margin-right: 0.8rem;
+  }
+}

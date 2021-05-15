@@ -1,0 +1,41 @@
+nb-layout-column {
+  padding: 0 !important;
+}
+
+mat-sidenav-container {
+  height: 100%;
+}
+
+mat-sidenav {
+  background-color: #222;
+}
+
+mat-sidenav-content {
+  display: flex;
+  flex-direction: column;
+
+  main {
+    padding: 1.5em 1.5em 6em;
+    flex-grow: 1;
+
+    &.dark-theme {
+      background-color: #333;
+    }
+  }
+}
+
+@media only screen and (max-width: 960px) {
+  mat-sidenav-content {
+    main {
+      padding: 0.5em 0.5em 6em;
+    }
+  }
+}
+
+@media only screen and (max-width: 500px) {
+  mat-sidenav-content {
+    main {
+      padding: 0.5em 0 4em;
+    }
+  }
+}
