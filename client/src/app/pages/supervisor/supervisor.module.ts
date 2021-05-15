@@ -11,7 +11,7 @@ import { SharedModule } from '../../shared/shared.module';
   imports: [
     CommonModule,
     SupervisorRoutingModule,
-    SharedModule
+    SharedModule,
   ]
 })
 export class SupervisorModule { }

@@ -21,6 +21,9 @@ export class SupervisorComponent implements OnInit {
     }
   } = { };
 
+  // UI Utils
+  copiedToClipBoard = false;
+
   constructor() { }
 
   ngOnInit(): void {
@@ -101,5 +104,21 @@ export class SupervisorComponent implements OnInit {
     })
 
     console.log('Room created');
+  }
+
+  public onCopyToClipBoard() {
+    if (this.copiedToClipBoard) return;
+
+    const text = document.createElement('textarea');
+    text.style.opacity = '0';
+    text.value = this.peerId;
+
+    document.body.appendChild(text);
+    text.focus()
+    text.select();
+    document.execCommand('copy');
+    document.body.removeChild(text);
+
+    this.copiedToClipBoard = true;
   }
 }

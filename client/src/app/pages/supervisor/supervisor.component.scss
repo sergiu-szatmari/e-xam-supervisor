@@ -6,6 +6,48 @@
   width: 100%;
   height: 100%;
 
+  position: relative;
+
+  .room-id-panel {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+
+    padding: 1rem;
+    background-color: #e6e6e6;
+    border-radius: 8px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    .label {
+      font-size: 18px;
+      margin: 0 auto 1rem;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      input {
+        font-weight: 600;
+        color: #333;
+        width: 330px;
+      }
+      nb-icon {
+        margin-left: .5rem;
+        cursor: pointer;
+
+        &.copied-to-clipboard {
+
+        }
+      }
+    }
+  }
+
   .new-room-container {
 
     button {

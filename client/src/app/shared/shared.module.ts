@@ -28,7 +28,7 @@ import {
   NbAccordionModule,
   NbAlertModule, NbButtonModule,
   NbCardModule,
-  NbDatepickerModule,
+  NbDatepickerModule, NbFormFieldModule,
   NbIconModule,
   NbInputModule,
   NbLayoutModule,
@@ -62,6 +62,7 @@ const nebularModules = [
   NbAlertModule,
   NbInputModule,
   NbAccordionModule,
+  NbFormFieldModule
 ];
 
 const materialModules = [

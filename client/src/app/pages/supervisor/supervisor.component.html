@@ -1,5 +1,19 @@
 <div class="container">
 
+  <div class="room-id-panel" *ngIf="peerId">
+    <span class="label">Room ID</span>
+
+    <div class="row">
+      <input type="text" nbInput [ngModel]="peerId" disabled>
+      <nb-icon nbSuffix
+               [icon]="copiedToClipBoard ? 'checkmark-square-2-outline' : 'clipboard-outline'"
+               (click)="onCopyToClipBoard()"
+               matTooltip="{{ copiedToClipBoard ? 'Room ID copied to clipboard' : 'Copy to clipboard' }}"
+               matTooltipPosition="right"
+      ></nb-icon>
+    </div>
+  </div>
+
   <div class="new-room-container">
     <button *ngIf="!peerId"
             nbButton
@@ -7,10 +21,6 @@
       <nb-icon icon="people-outline"></nb-icon>
       New room
     </button>
-
-    <span *ngIf="peerId">
-      Room ID: {{ peerId }}
-    </span>
 
     <div class="attendees-previews">
       <div class="attendee-preview" *ngFor="let connection of connections | keyvalue">
