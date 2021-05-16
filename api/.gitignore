@@ -1,4 +1,4 @@
 node_modules/
 build/
-config/*
-!config/sample.js
+.idea/
+.vscode/

@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./build/server.js",
-    "dev": "tsc-watch --onSuccess \"node --inspect ./build/server.js\" --onFailure \"echo Compilation Failed!\" --compiler typescript/bin/tsc --pretty"
+    "dev": "tsc-watch --onSuccess \"node --inspect ./build/server.js\" --onFailure \"echo Compilation Failed!\" --compiler typescript/bin/tsc --pretty",
+    "deploy": "git init && heroku git:remote -a e-xam-supervisor-api && git add . && git ci -m \"Deploy\" && git push heroku master --force && rm -rf .git"
   },
   "keywords": [],
   "author": "Sergiu",
