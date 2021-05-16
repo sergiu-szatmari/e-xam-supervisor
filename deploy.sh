@@ -1,8 +1,8 @@
 cd api
 npm run deploy
 cd ../client
-git co deploy/client --no-edit
-git merge main
+git co deploy/client
+git merge main --no-edit
 npm run deploy
 git add .
 git ci -m "Deploy"
