@@ -69,11 +69,13 @@ export class SupervisorComponent implements OnInit, OnDestroy {
 
   public onCreateRoom() {
     const { url, path, port } = environment.server;
+    const secure = environment.production;
     const peerOptions: PeerJSOption = {
       host: url,
       debug: 1,
       path,
       port,
+      secure
     };
 
     this.peer = new Peer(peerOptions);
