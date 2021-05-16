@@ -1,15 +1,23 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import Peer, { PeerJSOption } from 'peerjs';
+import Peer, { DataConnection, MediaConnection, PeerJSOption } from 'peerjs';
+import { Events } from '../../shared/models/events';
+import { ChatMessage, Message, MessageType, SetupPeerInformation } from '../../shared/models/message';
+import { PeerService } from '../../shared/services/peer.service';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 type PeerConnectionObject = { id: string, peerId: string, streams: MediaStream[] };
 
+@UntilDestroy()
 @Component({
   selector: 'app-supervisor',
   templateUrl: './supervisor.component.html',
   styleUrls: ['./supervisor.component.scss']
 })
-export class SupervisorComponent implements OnInit {
+export class SupervisorComponent implements OnInit, OnDestroy {
+
+  chatMessages: ChatMessage[] = [];
+  broadcastChatMessage = '';
 
   peerId: string;
   peer;
@@ -18,15 +26,45 @@ export class SupervisorComponent implements OnInit {
     [peerId: string]: {
       peerData: { name?: string },
       connections: { stream?: MediaStream, connectionId: string }[],
+      connection?: DataConnection
     }
   } = { };
+
+  // TODO: Merge in "connections"
+  calls: MediaConnection[] = [];
 
   // UI Utils
   copiedToClipBoard = false;
 
-  constructor() { }
+  constructor(
+    protected peerService: PeerService
+  ) { }
 
   ngOnInit(): void {
+    this.peerService
+      .leaveRoom$
+      .pipe(untilDestroyed(this))
+      .subscribe((disconnect) => {
+        if (disconnect) this.onLeaveRoom();
+      })
+    // // TODO: Remove this (mock data)
+    // this.chatMessages.push(
+    //   { from: 'attendee1', username: 'Attendee 1', message: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. ' +
+    //       'Ab consectetur culpa eaque illo laborum minus ' +
+    //       'officiis repellat, saepe ullam unde?', type: MessageType.chat,
+    //     ts: new Date() },
+    //   { from: 'attendee1', username: 'Attendee 1', message: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
+    //     type: MessageType.chat, ts: new Date() },
+    //   { from: 'supervisor', username: 'Supervisor',
+    //     message: 'Lorem ipsum dolor sit amet', type: MessageType.broadcast, ts: new Date() },
+    //   { from: 'system', username: 'System',
+    //     message: 'Attendee 2 has disconnected', type: MessageType.system,
+    //     ts: new Date() },
+    // );
+  }
+
+  public ngOnDestroy(): void {
+    this.onLeaveRoom();
   }
 
   public onCreateRoom() {
@@ -41,37 +79,67 @@ export class SupervisorComponent implements OnInit {
     this.peer = new Peer(peerOptions);
     this.peer.on('open', () => {
       this.peerId = this.peer.id;
+      this.peerService.connected = true;
+      this.chatMessages.push({
+        from: 'system',
+        username: 'System',
+        message: 'You connected',
+        type: MessageType.system,
+        ts: new Date()
+      });
     });
 
     this.peer.on('connection', (connection) => {
 
       connection.on('close', () => {
         if (this.connections[ connection.peer ]) {
+          this.chatMessages.push({
+            from: 'system', username: 'System',
+            message: `${ this.connections[ connection.peer ].peerData.name } has disconnected`,
+            type: MessageType.system,
+            ts: new Date()
+          });
           delete this.connections[ connection.peer ];
         }
       });
 
       connection.on('data', (data) => {
-        const { type, payload } = JSON.parse(data) as { type: string, payload: any };
+        const { type, payload } = Message.parse(data);
 
         switch (type) {
-          case 'set-name':
-            const { attendeeName } = payload as { attendeeName: string };
-            peerConnection.peerData.name = attendeeName;
+          case Events.setName: {
+            const { username } = payload as SetupPeerInformation;
+            this.connections[ connection.peer ].peerData.name = username;
+            this.chatMessages.push({
+              from: 'system',
+              username: 'System',
+              message: `${ this.connections[ connection.peer ].peerData.name } has connected`,
+              type: MessageType.system,
+              ts: new Date()
+            });
             break;
+          }
+
+          case Events.chatMessage: {
+            const { from, username, message, ts } = payload as ChatMessage;
+            if (!this.connections[ from ]) return;
+
+            this.chatMessages.push({ from, username, message, ts, type: MessageType.chat });
+            break;
+          }
         }
       });
 
-      let peerConnection = this.connections[ connection.peer ];
-      if (!peerConnection) {
-        // Add initial empty connection object
-        // if peer is was not connected before
-        this.connections[ connection.peer ] = { peerData: { }, connections: [] };
-        peerConnection = this.connections[ connection.peer ];
+      // Add initial empty connection object
+      // if peer is was not connected before
+      if (!this.connections[ connection.peer ]) {
+        this.connections[ connection.peer ] = { peerData: { }, connections: [], connection };
       }
     });
 
     this.peer.on('call', (call) => {
+
+      this.calls.push(call);
 
       call.on('stream', (remoteStream) => {
         const peerConnection = this.connections[ peer ];
@@ -96,7 +164,13 @@ export class SupervisorComponent implements OnInit {
       const { peer } = call;
       const existingPeerConnection = this.connections[ peer ];
       if (!existingPeerConnection) {
-        this.connections[ peer ] = { peerData: {}, connections: [ { connectionId: call.connectionId }] };
+        this.connections[ peer ] = {
+          peerData: {},
+          connections: [
+            { connectionId: call.connectionId }
+          ],
+          // connection: this.connections[ peer ].connection || ?
+        };
       }
 
       call.answer();
@@ -120,5 +194,46 @@ export class SupervisorComponent implements OnInit {
     document.body.removeChild(text);
 
     this.copiedToClipBoard = true;
+  }
+
+  public onBroadcastChatMessage() {
+    this.chatMessages.push({
+      from: 'supervisor',
+      username: 'Supervisor',
+      message: this.broadcastChatMessage,
+      type: MessageType.broadcast,
+      ts: new Date()
+    });
+
+    for (const peerId in this.connections) {
+      if (this.connections[ peerId ]?.connection) {
+        const message = Message.create({
+          type: Events.chatMessage,
+          payload: {
+            from: this.peerId,
+            username: 'Supervisor',
+            message: this.broadcastChatMessage,
+            type: MessageType.broadcast,
+            ts: new Date()
+          }
+        });
+        (this.connections[ peerId ].connection as DataConnection).send(message);
+      }
+    }
+
+    this.broadcastChatMessage = '';
+  }
+
+  public onLeaveRoom() {
+    // TODO
+    this.calls.forEach(call => call.close());
+    this.peer.destroy();
+
+    this.connections = { };
+    this.chatMessages = [];
+    this.peerId = '';
+    this.peer = null;
+
+    this.peerService.connected = false;
   }
 }

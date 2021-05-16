@@ -15,27 +15,11 @@ mat-sidenav-content {
   flex-direction: column;
 
   main {
-    padding: 1.5em 1.5em 6em;
+    padding: 0;
     flex-grow: 1;
 
     &.dark-theme {
       background-color: #333;
-    }
-  }
-}
-
-@media only screen and (max-width: 960px) {
-  mat-sidenav-content {
-    main {
-      padding: 0.5em 0.5em 6em;
-    }
-  }
-}
-
-@media only screen and (max-width: 500px) {
-  mat-sidenav-content {
-    main {
-      padding: 0.5em 0 4em;
     }
   }
 }

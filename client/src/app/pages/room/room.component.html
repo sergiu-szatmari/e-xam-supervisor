@@ -1,4 +1,45 @@
-<section class="room">
+<section class="room" [class.include-chat]="peerId">
+
+  <div class="chat-container" *ngIf="peerId">
+    <div class="room-id-panel">
+      <span class="label">Room ID</span>
+      <input type="text" nbInput value="{{ roomId }}" disabled>
+    </div>
+
+    <div class="chat">
+      <ul class="messages-box">
+        <li class="message"
+            *ngFor="let chatMessage of chatMessages"
+            [ngClass]="{ 'system': chatMessage.from === 'system', 'to': chatMessage.from === 'me', 'from': chatMessage.from !== 'me' }"
+        >
+            <span class="message-header" *ngIf="chatMessage.from === 'system'; else notSystemMessage">
+              <i>{{ chatMessage.message }}</i>
+              <br/>
+              ({{ chatMessage.ts | date: 'HH:mm:ss' }})
+            </span>
+
+          <ng-template #notSystemMessage>
+              <span class="message-header">
+                [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{ chatMessage.from !== 'me' ? (chatMessage.username + (chatMessage.type === MessageType.broadcast ? ' (Broadcast)' : ' (Direct)')) : 'You' }}:</i>
+              </span>
+            <span>{{ chatMessage.message }}</span>
+          </ng-template>
+        </li>
+      </ul>
+      <div class="typing-box">
+        <input type="text" nbInput
+               shape="semi-round"
+               placeholder="Send message to supervisor"
+               [(ngModel)]="chatMessage"
+        >
+        <button nbButton status="info"
+                (click)="onSendChatMessage()"
+                [disabled]="!(chatMessage?.length > 0)">
+          <nb-icon icon="paper-plane-outline"></nb-icon>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <div class="idle-state" *ngIf="roomState === RoomState.idle">
     <div class="form-group">
@@ -15,31 +56,8 @@
   </div>
 
   <div class="call-state" [class.hidden]="roomState !== RoomState.call">
-
-    <div class="previews-container">
-      <video #user autoplay muted></video>
-      <video #screen autoplay muted></video>
-    </div>
-
-    <div class="actions">
-      <button mat-flat-button
-              *ngIf="isSharing"
-              color="accent"
-              (click)="onToggleSharing()"
-      >Pause sharing</button>
-
-      <button mat-flat-button
-              *ngIf="!isSharing"
-              color="accent"
-              (click)="onToggleSharing()"
-      >Resume sharing</button>
-
-      <button mat-flat-button
-              *ngIf="isSharing"
-              color="warn"
-              (click)="onLeaveRoom()"
-      >Disconnect</button>
-    </div>
+    <video #user autoplay muted></video>
+    <video #screen autoplay muted></video>
   </div>
 
   <div class="ended-call-state" *ngIf="roomState === RoomState.endedCall">

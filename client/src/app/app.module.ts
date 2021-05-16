@@ -8,10 +8,12 @@ import { NbDatepickerModule, NbGlobalPhysicalPosition, NbThemeModule, NbToastrMo
 import { SharedModule } from './shared/shared.module';
 import { LayoutModule } from '@angular/cdk/layout';
 import { NgxPicaModule } from '@digitalascetic/ngx-pica';
+import { AboutComponent } from './pages/about/about.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    AboutComponent
   ],
   imports: [
     BrowserModule,

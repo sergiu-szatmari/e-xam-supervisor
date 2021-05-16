@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 import { MenuItem } from '../sidenav.component';
 
@@ -8,8 +8,12 @@ import { MenuItem } from '../sidenav.component';
   styleUrls: [ './link-view.component.scss' ],
 })
 export class LinkViewComponent {
-  @Input() item: MenuItem;
 
-  constructor() {
-  }
+  @Input()
+  item: MenuItem;
+
+  @Output()
+  clicked = new EventEmitter<void>();
+
+  constructor() { }
 }

@@ -1,11 +1,12 @@
-<button
-  [routerLinkActive]="item.link ? 'active' : ''"
-   [routerLink]="item?.link || []"
+<button (click)="this.clicked.emit()"
+    [routerLinkActive]="item.link ? 'active' : ''"
+    [routerLink]="item?.link || []"
    class="app-link"
    matRipple
 >
   <nb-icon *ngIf="item.evaIcon"
            [icon]="item.evaIcon"
+           [class.rotated]="item.title === 'Leave Room'"
   ></nb-icon>
 
   <mat-icon *ngIf="item.materialIcon"

@@ -8,6 +8,8 @@
 
 :root {
   --font-family-primary: "Roboto", "Segoe UI", "Helvetica", sans-serif;
+
+  --chat-container-width: 360px;
 }
 
 * {
@@ -58,4 +60,11 @@ body {
   to {
     transform: rotate(360deg);
   }
+}
+
+// Used for the "Leave room" menu button
+#leave-room-button { margin-top: auto; }
+
+.hidden {
+  display: none;
 }

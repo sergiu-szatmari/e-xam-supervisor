@@ -3,5 +3,13 @@
 
   <app-link-view *ngFor="let item of menuItems"
                  [item]="item"
+                 class="nav-link"
+                 [class.hidden]="(peerService.connected$ | async)"
+  ></app-link-view>
+  <app-link-view id="leave-room-button"
+                 [class.hidden]="!(peerService.connected$ | async)"
+                 class="nav-link"
+                 (click)="peerService.leaveRoom = true"
+                 [item]="{ title: 'Leave Room', evaIcon: 'log-out-outline', link: '' }"
   ></app-link-view>
 </nav>

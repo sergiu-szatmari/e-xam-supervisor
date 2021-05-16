@@ -27,5 +27,7 @@ button {
   nb-icon {
     font-size: 24px;
     margin-right: 0.8rem;
+
+    &.rotated { transform: rotate(180deg); }
   }
 }

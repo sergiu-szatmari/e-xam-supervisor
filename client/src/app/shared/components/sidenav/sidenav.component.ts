@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, } from '@angular/core';
 import { Router } from '@angular/router';
+import { PeerService } from '../../services/peer.service';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 export interface MenuItem {
   title: string;
@@ -10,6 +12,7 @@ export interface MenuItem {
   expanded?: boolean;
 }
 
+@UntilDestroy()
 @Component({
   selector: 'app-sidenav',
   templateUrl: './sidenav.component.html',
@@ -36,11 +39,19 @@ export class SidenavComponent implements OnInit {
       title: 'Supervisor',
       link: '/supervisor',
       evaIcon: 'layout-outline'
+    },
+    {
+      title: 'Help & About',
+      link: '/about',
+      evaIcon: 'question-mark-circle-outline'
     }
   ];
 
+  isMeetingInProgress: boolean;
+
   constructor(
     private router: Router,
+    public peerService: PeerService,
   ) { }
 
   ngOnInit() {

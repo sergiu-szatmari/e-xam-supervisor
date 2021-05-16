@@ -1,20 +1,5 @@
-<div class="container">
-
-  <div class="room-id-panel" *ngIf="peerId">
-    <span class="label">Room ID</span>
-
-    <div class="row">
-      <input type="text" nbInput [ngModel]="peerId" disabled>
-      <nb-icon nbSuffix
-               [icon]="copiedToClipBoard ? 'checkmark-square-2-outline' : 'clipboard-outline'"
-               (click)="onCopyToClipBoard()"
-               matTooltip="{{ copiedToClipBoard ? 'Room ID copied to clipboard' : 'Copy to clipboard' }}"
-               matTooltipPosition="right"
-      ></nb-icon>
-    </div>
-  </div>
-
-  <div class="new-room-container">
+<div class="container" [class.include-chat]="peerId">
+  <div class="room-container">
     <button *ngIf="!peerId"
             nbButton
             status="info" (click)="onCreateRoom()">
@@ -28,6 +13,53 @@
           <video autoplay [srcObject]="connectionObj.stream"></video>
           <span>{{ connection.value.peerData.name || connection.key }}</span>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-container" *ngIf="peerId">
+    <div class="room-id-panel">
+      <span class="label">Room ID</span>
+
+      <input type="text" nbInput [ngModel]="peerId" disabled>
+
+      <button nbButton [outline]="copiedToClipBoard" status="info" (click)="onCopyToClipBoard()" >
+        <nb-icon [icon]="copiedToClipBoard ? 'checkmark-square-2-outline' : 'clipboard-outline'"></nb-icon>
+        {{ copiedToClipBoard ? 'Copied to clipboard' : 'Copy to clipboard' }}
+      </button>
+    </div>
+
+    <div class="chat">
+      <ul class="messages-box">
+        <li class="message"
+            *ngFor="let chatMessage of chatMessages"
+            [ngClass]="{ 'system': chatMessage.from === 'system', 'to': chatMessage.from === 'supervisor', 'from': chatMessage.from !== 'supervisor' }"
+        >
+          <span class="message-header" *ngIf="chatMessage.from === 'system'; else notSystemMessage">
+            <i>{{ chatMessage.message }}</i>
+            <br/>
+            ({{ chatMessage.ts | date: 'HH:mm:ss' }})
+          </span>
+
+          <ng-template #notSystemMessage>
+            <span class="message-header">
+              [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{ chatMessage.from !== 'supervisor' ? chatMessage.username : 'You (Broadcast)' }}:</i>
+            </span>
+            <span>{{ chatMessage.message }}</span>
+          </ng-template>
+        </li>
+      </ul>
+      <div class="typing-box">
+        <input type="text" nbInput
+               shape="semi-round"
+               placeholder="Send message to all"
+               [(ngModel)]="broadcastChatMessage"
+        >
+        <button nbButton status="info"
+                (click)="onBroadcastChatMessage()"
+                [disabled]="!(broadcastChatMessage?.length > 0)">
+          <nb-icon icon="paper-plane-outline"></nb-icon>
+        </button>
       </div>
     </div>
   </div>
