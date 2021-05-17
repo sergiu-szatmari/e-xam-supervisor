@@ -47,24 +47,10 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       .subscribe((disconnect) => {
         if (disconnect) this.onLeaveRoom();
       })
-    // // TODO: Remove this (mock data)
-    // this.chatMessages.push(
-    //   { from: 'attendee1', username: 'Attendee 1', message: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. ' +
-    //       'Ab consectetur culpa eaque illo laborum minus ' +
-    //       'officiis repellat, saepe ullam unde?', type: MessageType.chat,
-    //     ts: new Date() },
-    //   { from: 'attendee1', username: 'Attendee 1', message: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
-    //     type: MessageType.chat, ts: new Date() },
-    //   { from: 'supervisor', username: 'Supervisor',
-    //     message: 'Lorem ipsum dolor sit amet', type: MessageType.broadcast, ts: new Date() },
-    //   { from: 'system', username: 'System',
-    //     message: 'Attendee 2 has disconnected', type: MessageType.system,
-    //     ts: new Date() },
-    // );
   }
 
   public ngOnDestroy(): void {
-    this.onLeaveRoom();
+    if (this.peerId) this.onLeaveRoom();
   }
 
   public onCreateRoom() {
@@ -227,7 +213,8 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   }
 
   public onLeaveRoom() {
-    // TODO
+    // TODO: Send "close" event to all attendees ? / kick
+
     this.calls.forEach(call => call.close());
     this.peer.destroy();
 
@@ -237,5 +224,9 @@ export class SupervisorComponent implements OnInit, OnDestroy {
     this.peer = null;
 
     this.peerService.connected = false;
+  }
+
+  public onFocusMode() {
+    alert('tba');
   }
 }

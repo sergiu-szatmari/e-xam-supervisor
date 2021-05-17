@@ -1,5 +1,5 @@
 <div class="container" [class.include-chat]="peerId">
-  <div class="room-container">
+  <div class="room-container" [class.idle]="!peerId">
     <button *ngIf="!peerId"
             nbButton
             status="info" (click)="onCreateRoom()">
@@ -8,12 +8,15 @@
     </button>
 
     <div class="attendees-previews">
-      <div class="attendee-preview" *ngFor="let connection of connections | keyvalue">
-        <div class="preview" *ngFor="let connectionObj of connection.value.connections">
-          <video autoplay [srcObject]="connectionObj.stream"></video>
-          <span>{{ connection.value.peerData.name || connection.key }}</span>
+<!--      <ng-container *ngFor="let _ of [1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5]">-->
+        <div class="attendee-preview" *ngFor="let connection of connections | keyvalue">
+          <app-video-container *ngFor="let connectionObj of connection.value.connections"
+                               [stream]="connectionObj.stream"
+                               [label]="connection.value.peerData.name || connection.key"
+                               (click)="onFocusMode()"
+         ></app-video-container>
         </div>
-      </div>
+<!--      </ng-container>-->
     </div>
   </div>
 

@@ -7,6 +7,7 @@ import { Events } from '../../shared/models/events';
 import { ChatMessage, Message, MessageType } from '../../shared/models/message';
 import { PeerService } from '../../shared/services/peer.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { MediaService } from '../../shared/services/media.service';
 
 enum RoomState {
   idle = 'idle',
@@ -51,6 +52,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   constructor(
     protected peerService: PeerService,
+    protected mediaService: MediaService,
     protected toastr: NbToastrService
   ) { }
 

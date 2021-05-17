@@ -47,6 +47,7 @@ import localeEnGb from '@angular/common/locales/en-GB';
 import { LogoComponent } from './components/logo/logo.component';
 import { SidenavComponent } from './components/sidenav/sidenav.component';
 import { LinkViewComponent } from './components/sidenav/link-view/link-view.component';
+import { VideoContainerComponent } from './components/video-container/video-container.component';
 
 registerLocaleData(localeEnGb);
 
@@ -111,9 +112,9 @@ const appearance: MatFormFieldDefaultOptions = {
 };
 
 @NgModule({
-  declarations: [ ...componentsList, LinkViewComponent ],
+  declarations: [ ...componentsList, LinkViewComponent, VideoContainerComponent ],
   imports: [ ...usedModules ],
-  exports: [ ...usedModules, ...componentsList ],
+  exports: [ ...usedModules, ...componentsList, VideoContainerComponent ],
   providers: [
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
