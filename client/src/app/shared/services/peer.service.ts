@@ -15,4 +15,8 @@ export class PeerService {
   public set leaveRoom(disconnect: boolean) { this.leaveRoomSubject.next(disconnect); }
 
   constructor() { }
+
+  public disconnect() {
+    this.connectedSubject.next(false);
+  }
 }

@@ -42,14 +42,21 @@ export class MediaService {
     return { user: this.webcamStream, screen: this.screenStream };
   }
 
-  public async getStreamClone({ user, screen }: StreamOptions): Promise<MediaStreamsObject> {
-    if (!this.webcamStream || !this.screenStream) await this.loadStreams();
+  public closeStreams() {
+    const streams = [
+      this.webcamStream,
+      this.screenStream,
+      this.remoteWebcamStream,
+      this.remoteScreenStream,
+    ];
 
-    if (!this.remoteWebcamStream || !this.remoteScreenStream) {
-      this.remoteWebcamStream = this.webcamStream.clone();
-      this.remoteScreenStream = this.screenStream.clone();
-    }
+    streams.forEach((stream) => {
+      stream?.getTracks().forEach(track => track.stop());
+    });
 
-    return { user: this.remoteWebcamStream, screen: this.remoteScreenStream };
+    this.webcamStream = null;
+    this.screenStream = null;
+    this.remoteWebcamStream = null;
+    this.remoteScreenStream = null;
   }
 }

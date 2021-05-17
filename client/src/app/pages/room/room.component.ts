@@ -8,6 +8,7 @@ import { ChatMessage, Message, MessageType } from '../../shared/models/message';
 import { PeerService } from '../../shared/services/peer.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { MediaService } from '../../shared/services/media.service';
+import { BehaviorSubject } from 'rxjs';
 
 enum RoomState {
   idle = 'idle',
@@ -36,15 +37,8 @@ export class RoomComponent implements OnInit, OnDestroy {
   peerId: string;
   connection: DataConnection;
 
-  @ViewChild('user')
-  userVideoElem: ElementRef;
-
-  @ViewChild('screen')
-  screenVideoElem: ElementRef;
-
-  roomState: RoomState = RoomState.idle;
-  isSharing: boolean;
-  isInCall = false;
+  roomStateSubject = new BehaviorSubject(RoomState.idle);
+  public get roomState$() { return this.roomStateSubject.asObservable(); }
 
   // UI Utils
   MessageType = MessageType;
@@ -82,38 +76,18 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   private async loadStream() {
     try {
-      const [ userStream, screenStream ] = await Promise.all([
-        navigator.mediaDevices.getUserMedia({ audio: true, video: true }),
+      const { user, screen } = await this.mediaService.getStreamRef();
 
-        // @ts-ignore
-        navigator.mediaDevices.getDisplayMedia({ audio: true, video: { deviceId: 1 } }),
-      ]);
-
-      this.userStream = userStream;
-      this.screenStream = screenStream;
-
-      this.userVideoElem.nativeElement.srcObject = userStream;
-      this.screenVideoElem.nativeElement.srcObject = screenStream;
-
-      this.isSharing = true;
+      this.userStream = user;
+      this.screenStream = screen;
     } catch (err) {
       console.error(err);
       this.toastr.danger(err.message);
     }
   }
 
-  public onToggleSharing() {
-    [
-      ...(this.userStream.getTracks()),
-      ...(this.screenStream.getTracks())
-    ].forEach(track => track.enabled = !track.enabled);
-    this.isSharing = !this.isSharing;
-  }
-
   public onStopSharing() {
-    this.userStream?.getTracks()?.forEach(track => track.stop());
-    this.screenStream?.getTracks()?.forEach(track => track.stop());
-
+    this.mediaService.closeStreams();
     this.userStream = null;
     this.screenStream = null;
   }
@@ -162,7 +136,7 @@ export class RoomComponent implements OnInit, OnDestroy {
         });
         this.connection.send(message);
 
-        this.roomState = RoomState.call;
+        this.roomStateSubject.next(RoomState.call);
 
         await this.loadStream();
 
@@ -178,13 +152,12 @@ export class RoomComponent implements OnInit, OnDestroy {
     this.peer.destroy();
     this.onStopSharing();
 
-    this.roomState = RoomState.endedCall;
-    this.isInCall = false;
+    this.roomStateSubject.next(RoomState.endedCall);
     this.peerId = '';
     this.chatMessages = [];
     this.peer = null;
 
-    this.peerService.connected = false;
+    this.peerService.disconnect();
   }
 
   public onSendChatMessage() {

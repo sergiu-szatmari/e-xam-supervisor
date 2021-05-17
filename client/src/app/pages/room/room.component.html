@@ -41,7 +41,7 @@
     </div>
   </div>
 
-  <div class="idle-state" *ngIf="roomState === RoomState.idle">
+  <div class="idle-state" *ngIf="(roomState$ | async) === RoomState.idle">
     <div class="form-group">
       <span class="label">Join a room</span>
       <input type="text" nbInput placeholder="Enter your name"
@@ -55,12 +55,12 @@
     <button nbButton status="info" (click)="onJoinRoom()">Join</button>
   </div>
 
-  <div class="call-state" [class.hidden]="roomState !== RoomState.call">
-    <video #user autoplay muted></video>
-    <video #screen autoplay muted></video>
+  <div class="call-state" [class.hidden]="(roomState$ | async) !== RoomState.call">
+    <video autoplay muted [srcObject]="userStream"></video>
+    <video autoplay muted [srcObject]="screenStream"></video>
   </div>
 
-  <div class="ended-call-state" *ngIf="roomState === RoomState.endedCall">
+  <div class="ended-call-state" *ngIf="(roomState$ | async) === RoomState.endedCall">
     <span>See you next time, {{ attendeeName }}! 👋</span>
   </div>
 </section>
