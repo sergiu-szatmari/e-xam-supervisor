@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MediaStreamsObject } from '../models/media';
+import { BehaviorSubject } from 'rxjs';
 
 interface StreamOptions {
   user: boolean;
@@ -13,6 +14,12 @@ export class MediaService {
 
   private webcamStream: MediaStream;
   private screenStream: MediaStream;
+
+  private webcamStreamSubject = new BehaviorSubject(null);
+  public get webcamStream$() { return this.webcamStreamSubject.asObservable(); }
+
+  private screenStreamSubject = new BehaviorSubject(null);
+  public get screenStream$() { return this.screenStreamSubject.asObservable(); }
 
   private remoteWebcamStream: MediaStream;
   private remoteScreenStream: MediaStream;
@@ -30,6 +37,9 @@ export class MediaService {
 
       this.webcamStream = userStream;
       this.screenStream = screenStream;
+
+      this.webcamStreamSubject.next(this.webcamStream);
+      this.screenStreamSubject.next(this.screenStream);
     } catch (err) {
       console.error(err);
       // TODO: Proper error handling
@@ -42,17 +52,34 @@ export class MediaService {
     return { user: this.webcamStream, screen: this.screenStream };
   }
 
+  public async getStreamClone(preferences: StreamOptions): Promise<MediaStreamsObject> {
+    if (!this.webcamStream || !this.screenStream) await this.loadStreams();
+
+    if (!this.remoteWebcamStream || !this.remoteScreenStream) {
+      this.remoteWebcamStream = this.webcamStream.clone();
+      this.remoteScreenStream = this.screenStream.clone();
+    }
+
+    const streams: any = { };
+    if (preferences.user) streams.user = this.remoteWebcamStream;
+    if (preferences.screen) streams.user = this.remoteScreenStream;
+
+    return streams;
+  }
+
   public closeStreams() {
-    const streams = [
-      this.webcamStream,
+    [ this.webcamStream,
       this.screenStream,
       this.remoteWebcamStream,
       this.remoteScreenStream,
-    ];
-
-    streams.forEach((stream) => {
+    ].forEach((stream) => {
       stream?.getTracks().forEach(track => track.stop());
     });
+
+    this.webcamStreamSubject.next(null);
+    this.webcamStreamSubject.complete();
+    this.screenStreamSubject.next(null);
+    this.screenStreamSubject.complete();
 
     this.webcamStream = null;
     this.screenStream = null;

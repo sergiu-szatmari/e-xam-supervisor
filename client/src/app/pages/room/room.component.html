@@ -56,8 +56,8 @@
   </div>
 
   <div class="call-state" [class.hidden]="(roomState$ | async) !== RoomState.call">
-    <video autoplay muted [srcObject]="userStream"></video>
-    <video autoplay muted [srcObject]="screenStream"></video>
+    <video autoplay muted [srcObject]="(mediaService.webcamStream$ | async)"></video>
+    <video autoplay muted [srcObject]="(mediaService.screenStream$ | async)"></video>
   </div>
 
   <div class="ended-call-state" *ngIf="(roomState$ | async) === RoomState.endedCall">

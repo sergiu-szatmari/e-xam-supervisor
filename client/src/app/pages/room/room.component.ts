@@ -24,15 +24,12 @@ enum RoomState {
 })
 export class RoomComponent implements OnInit, OnDestroy {
 
-  userStream: MediaStream;
-  screenStream: MediaStream;
-
   chatMessage = '';
   chatMessages: ChatMessage[] = [];
   attendeeName = '';
   roomId: string;
 
-  calls: MediaConnection[];
+  call: MediaConnection;
   peer: Peer;
   peerId: string;
   connection: DataConnection;
@@ -46,7 +43,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   constructor(
     protected peerService: PeerService,
-    protected mediaService: MediaService,
+    public mediaService: MediaService,
     protected toastr: NbToastrService
   ) { }
 
@@ -60,7 +57,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
-    this.onStopSharing();
+    this.mediaService.closeStreams();
   }
 
   public onAttendeeNameType(name: string) {
@@ -72,24 +69,6 @@ export class RoomComponent implements OnInit, OnDestroy {
       .map(capitalize)
       .map(namePart => namePart.split('-').map(capitalize).join('-'))
       .join(' ');
-  }
-
-  private async loadStream() {
-    try {
-      const { user, screen } = await this.mediaService.getStreamRef();
-
-      this.userStream = user;
-      this.screenStream = screen;
-    } catch (err) {
-      console.error(err);
-      this.toastr.danger(err.message);
-    }
-  }
-
-  public onStopSharing() {
-    this.mediaService.closeStreams();
-    this.userStream = null;
-    this.screenStream = null;
   }
 
   public onJoinRoom() {
@@ -138,26 +117,25 @@ export class RoomComponent implements OnInit, OnDestroy {
 
         this.roomStateSubject.next(RoomState.call);
 
-        await this.loadStream();
-
-        this.calls = [ this.userStream ] // , this.screenStream ]
-          .map(stream => stream.clone())
-          .map(streamClone => this.peer.call(this.roomId, streamClone));
-      })
+        const streams = await this.mediaService.getStreamClone({ user: true, screen: false });
+        const userStream = streams.user;
+        this.call = this.peer.call(this.roomId, userStream);
+      });
     });
   }
 
   public onLeaveRoom() {
-    this.calls.forEach(call => call.close());
+    this.call.close();
     this.peer.destroy();
-    this.onStopSharing();
+
+    this.mediaService.closeStreams();
+    this.peerService.disconnect();
 
     this.roomStateSubject.next(RoomState.endedCall);
     this.peerId = '';
     this.chatMessages = [];
     this.peer = null;
 
-    this.peerService.disconnect();
   }
 
   public onSendChatMessage() {
