@@ -1,6 +1,6 @@
-<section class="room" [class.include-chat]="peerId">
+<section class="room" [class.include-chat]="peerService.connected$ | async">
 
-  <div class="chat-container" *ngIf="peerId">
+  <div class="chat-container" *ngIf="peerService.connected$ | async">
     <div class="room-id-panel">
       <span class="label">Room ID</span>
       <input type="text" nbInput value="{{ roomId }}" disabled>
@@ -9,7 +9,7 @@
     <div class="chat">
       <ul class="messages-box">
         <li class="message"
-            *ngFor="let chatMessage of chatMessages"
+            *ngFor="let chatMessage of (chatService.chatMessages$ | async)"
             [ngClass]="{ 'system': chatMessage.from === 'system', 'to': chatMessage.from === 'me', 'from': chatMessage.from !== 'me' }"
         >
             <span class="message-header" *ngIf="chatMessage.from === 'system'; else notSystemMessage">
@@ -56,8 +56,8 @@
   </div>
 
   <div class="call-state" [class.hidden]="(roomState$ | async) !== RoomState.call">
-    <video autoplay muted [srcObject]="(mediaService.webcamStream$ | async)"></video>
-    <video autoplay muted [srcObject]="(mediaService.screenStream$ | async)"></video>
+    <video autoplay muted [srcObject]="mediaService.webcamStream"></video>
+    <video autoplay muted [srcObject]="mediaService.screenStream"></video>
   </div>
 
   <div class="ended-call-state" *ngIf="(roomState$ | async) === RoomState.endedCall">

@@ -4,12 +4,12 @@
   <app-link-view *ngFor="let item of menuItems"
                  [item]="item"
                  class="nav-link"
-                 [class.hidden]="(peerService.connected$ | async)"
+                 [class.hidden]="(mediaService.streaming$ | async)"
   ></app-link-view>
   <app-link-view id="leave-room-button"
-                 [class.hidden]="!(peerService.connected$ | async)"
+                 [class.hidden]="!(mediaService.streaming$ | async)"
                  class="nav-link"
-                 (click)="peerService.leaveRoom = true"
+                 (click)="mediaService.requestDisconnect()"
                  [item]="{ title: 'Leave Room', evaIcon: 'log-out-outline', link: '' }"
   ></app-link-view>
 </nav>

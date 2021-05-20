@@ -1,14 +1,13 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NbToastrService } from '@nebular/theme';
 import 'webrtc-adapter';
-import { environment } from '../../../environments/environment';
-import Peer, { DataConnection, MediaConnection, PeerJSOption } from 'peerjs';
-import { Events } from '../../shared/models/events';
-import { ChatMessage, Message, MessageType } from '../../shared/models/message';
-import { PeerService } from '../../shared/services/peer.service';
+import { OldPeerService } from '../../shared/services/old-peer.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { MediaService } from '../../shared/services/media.service';
 import { BehaviorSubject } from 'rxjs';
+import { ChatService } from '../../shared/services/chat.service';
+import { RoomPeerService } from '../../shared/services/room-peer.service';
+import { MessageType } from '../../shared/models/message';
 
 enum RoomState {
   idle = 'idle',
@@ -25,14 +24,11 @@ enum RoomState {
 export class RoomComponent implements OnInit, OnDestroy {
 
   chatMessage = '';
-  chatMessages: ChatMessage[] = [];
   attendeeName = '';
   roomId: string;
 
-  call: MediaConnection;
-  peer: Peer;
-  peerId: string;
-  connection: DataConnection;
+  webcamStream: MediaStream;
+  screenStream: MediaStream;
 
   roomStateSubject = new BehaviorSubject(RoomState.idle);
   public get roomState$() { return this.roomStateSubject.asObservable(); }
@@ -42,14 +38,26 @@ export class RoomComponent implements OnInit, OnDestroy {
   RoomState = RoomState;
 
   constructor(
-    protected peerService: PeerService,
+    protected toastr: NbToastrService,
+    public peerService: RoomPeerService,
     public mediaService: MediaService,
-    protected toastr: NbToastrService
+    public chatService: ChatService,
   ) { }
 
   ngOnInit(): void {
-    this.peerService
-      .leaveRoom$
+    this.peerService.connected$
+      .pipe(untilDestroyed(this))
+      .subscribe(async (connected: boolean) => {
+        if (connected) {
+          this.roomStateSubject.next(RoomState.call);
+
+          const { user } = await this.mediaService.getStreamClone({ user: true, screen: false });
+          this.peerService.initiateCall(user);
+        }
+      });
+
+    this.mediaService
+      .disconnectRequest$
       .pipe(untilDestroyed(this))
       .subscribe(disconnect => {
         if (disconnect) this.onLeaveRoom();
@@ -71,75 +79,36 @@ export class RoomComponent implements OnInit, OnDestroy {
       .join(' ');
   }
 
-  public onJoinRoom() {
-    const { url, path, port } = environment.server;
-    const secure = environment.production;
-    const peerOptions: PeerJSOption = {
-      host: url,
-      debug: 1,
-      path,
-      port,
-      secure
-    };
+  public async onJoinRoom() {
+    if (!this.attendeeName) {
+      this.toastr.danger('Your name is required');
+      return;
+    }
 
-    this.peer = new Peer(peerOptions);
-    this.peer.on('open', () => {
-      this.peerId = this.peer.id;
-      this.connection = this.peer.connect(this.roomId);
-      this.chatMessages.push({
-        from: 'system', username: 'System',
-        message: 'You connected',
-        type: MessageType.system,
-        ts: new Date()
-      });
+    if (!this.roomId) {
+      this.toastr.danger('No Room ID provided');
+      return;
+    }
 
-      this.connection.on('data', (data) => {
-        const { type, payload } = Message.parse(data);
-
-        switch (type) {
-          case Events.chatMessage:
-            const { username, message, ts } = payload as ChatMessage;
-            const chatMessageType = (payload as ChatMessage).type;
-            this.chatMessages.push({ username, message, ts, from: 'supervisor', type: chatMessageType });
-            break;
-        }
-      });
-
-      this.connection.on('open', async () => {
-
-        this.peerService.connected = true;
-        // Sending username
-        const message = Message.create({
-          type: Events.setName,
-          payload: { username: this.attendeeName }
-        });
-        this.connection.send(message);
-
-        this.roomStateSubject.next(RoomState.call);
-
-        const streams = await this.mediaService.getStreamClone({ user: true, screen: false });
-        const userStream = streams.user;
-        this.call = this.peer.call(this.roomId, userStream);
-      });
-    });
+    this.peerService.connect(this.roomId, this.attendeeName);
   }
 
   public onLeaveRoom() {
-    this.call.close();
-    this.peer.destroy();
+    if (this.peerService.disconnect()) {
+      // If peer disconnects successfully
+      // (peer exists before, was connected, etc)
+      this.peerService.disconnect();
+      // this.oldPeerService.disconnect();
+
+      this.roomStateSubject.next(RoomState.endedCall);
+      this.chatService.clear();
+    }
 
     this.mediaService.closeStreams();
-    this.peerService.disconnect();
-
-    this.roomStateSubject.next(RoomState.endedCall);
-    this.peerId = '';
-    this.chatMessages = [];
-    this.peer = null;
-
   }
 
   public onSendChatMessage() {
-    this.chatMessages.push({
+    this.chatService.newMessage({
       from: 'me',
       username: this.attendeeName,
       message: this.chatMessage,
@@ -147,17 +116,7 @@ export class RoomComponent implements OnInit, OnDestroy {
       ts: new Date(),
     });
 
-    const chatMessage = Message.create({
-      type: Events.chatMessage,
-      payload: {
-        from: this.peerId,
-        username: this.attendeeName,
-        message: this.chatMessage,
-        type: MessageType.chat,
-        ts: new Date()
-      }
-    });
-    this.connection.send(chatMessage);
+    this.peerService.sendChatMessage(this.chatMessage);
     this.chatMessage = '';
   }
 }

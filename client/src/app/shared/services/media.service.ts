@@ -12,14 +12,14 @@ interface StreamOptions {
 })
 export class MediaService {
 
-  private webcamStream: MediaStream;
-  private screenStream: MediaStream;
+  public webcamStream: MediaStream;
+  public screenStream: MediaStream;
 
-  private webcamStreamSubject = new BehaviorSubject(null);
-  public get webcamStream$() { return this.webcamStreamSubject.asObservable(); }
+  private streamingSubject = new BehaviorSubject(false);
+  public get streaming$() { return this.streamingSubject.asObservable(); }
 
-  private screenStreamSubject = new BehaviorSubject(null);
-  public get screenStream$() { return this.screenStreamSubject.asObservable(); }
+  private disconnectRequestSubject = new BehaviorSubject(false);
+  public get disconnectRequest$() { return this.disconnectRequestSubject.asObservable(); }
 
   private remoteWebcamStream: MediaStream;
   private remoteScreenStream: MediaStream;
@@ -28,6 +28,7 @@ export class MediaService {
 
   private async loadStreams() {
     try {
+      console.log('loadStreams');
       const [ userStream, screenStream ] = await Promise.all([
         navigator.mediaDevices.getUserMedia({ audio: true, video: true }),
 
@@ -38,8 +39,7 @@ export class MediaService {
       this.webcamStream = userStream;
       this.screenStream = screenStream;
 
-      this.webcamStreamSubject.next(this.webcamStream);
-      this.screenStreamSubject.next(this.screenStream);
+      this.streamingSubject.next(true);
     } catch (err) {
       console.error(err);
       // TODO: Proper error handling
@@ -76,14 +76,16 @@ export class MediaService {
       stream?.getTracks().forEach(track => track.stop());
     });
 
-    this.webcamStreamSubject.next(null);
-    this.webcamStreamSubject.complete();
-    this.screenStreamSubject.next(null);
-    this.screenStreamSubject.complete();
+    this.streamingSubject.next(false);
+    this.streamingSubject.complete();
 
     this.webcamStream = null;
     this.screenStream = null;
     this.remoteWebcamStream = null;
     this.remoteScreenStream = null;
+  }
+
+  public requestDisconnect() {
+    this.disconnectRequestSubject.next(true);
   }
 }

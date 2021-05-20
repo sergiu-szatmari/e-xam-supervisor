@@ -1,22 +1,15 @@
-import { Injectable, EventEmitter } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { Injectable } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PeerService {
+export abstract class PeerService {
 
-  private connectedSubject = new BehaviorSubject(false);
-  public get connected$() { return this.connectedSubject.asObservable() }
-  public set connected(value: boolean) { this.connectedSubject.next(value); }
+  protected connectedSubject = new BehaviorSubject(false);
+  public get connected$() { return this.connectedSubject.asObservable(); }
 
-  private leaveRoomSubject = new BehaviorSubject(false)
-  public get leaveRoom$() { return this.leaveRoomSubject.asObservable(); }
-  public set leaveRoom(disconnect: boolean) { this.leaveRoomSubject.next(disconnect); }
+  protected constructor() { }
 
-  constructor() { }
-
-  public disconnect() {
-    this.connectedSubject.next(false);
-  }
+  public abstract disconnect(): boolean;
 }

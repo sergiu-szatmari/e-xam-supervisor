@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnInit, } from '@angular/core';
 import { Router } from '@angular/router';
-import { PeerService } from '../../services/peer.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { RoomPeerService } from '../../services/room-peer.service';
+import { PeerService } from '../../services/peer.service';
+import { MediaService } from '../../services/media.service';
 
 export interface MenuItem {
   title: string;
@@ -31,8 +33,6 @@ export class SidenavComponent implements OnInit {
     {
       title: 'Room',
       link: '/room',
-      // evaIcon: 'at-outline'
-      // evaIcon: 'browser-outline'
       evaIcon: 'monitor-outline'
     },
     {
@@ -47,11 +47,9 @@ export class SidenavComponent implements OnInit {
     }
   ];
 
-  isMeetingInProgress: boolean;
-
   constructor(
     private router: Router,
-    public peerService: PeerService,
+    public mediaService: MediaService
   ) { }
 
   ngOnInit() {

@@ -3,7 +3,7 @@ import { environment } from '../../../environments/environment';
 import Peer, { DataConnection, MediaConnection, PeerJSOption } from 'peerjs';
 import { Events } from '../../shared/models/events';
 import { ChatMessage, Message, MessageType, SetupPeerInformation } from '../../shared/models/message';
-import { PeerService } from '../../shared/services/peer.service';
+import { OldPeerService } from '../../shared/services/old-peer.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 type PeerConnectionObject = { id: string, peerId: string, streams: MediaStream[] };
@@ -22,6 +22,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   peerId: string;
   peer;
 
+  // TODO: See Peer.connections (index.d.ts)
   connections: {
     [peerId: string]: {
       peerData: { name?: string },
@@ -37,7 +38,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   copiedToClipBoard = false;
 
   constructor(
-    protected peerService: PeerService
+    protected peerService: OldPeerService
   ) { }
 
   ngOnInit(): void {
