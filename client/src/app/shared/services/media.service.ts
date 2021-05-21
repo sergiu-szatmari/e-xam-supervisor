@@ -17,6 +17,7 @@ export class MediaService {
 
   private streamingSubject = new BehaviorSubject(false);
   public get streaming$() { return this.streamingSubject.asObservable(); }
+  public set streaming(toggleStreamingState: boolean) { this.streamingSubject.next(toggleStreamingState); }
 
   private disconnectRequestSubject = new BehaviorSubject(false);
   public get disconnectRequest$() { return this.disconnectRequestSubject.asObservable(); }
@@ -40,6 +41,7 @@ export class MediaService {
       this.screenStream = screenStream;
 
       this.streamingSubject.next(true);
+      console.log(this.streamingSubject.value);
     } catch (err) {
       console.error(err);
       // TODO: Proper error handling
@@ -62,7 +64,7 @@ export class MediaService {
 
     const streams: any = { };
     if (preferences.user) streams.user = this.remoteWebcamStream;
-    if (preferences.screen) streams.user = this.remoteScreenStream;
+    if (preferences.screen) streams.screen = this.remoteScreenStream;
 
     return streams;
   }

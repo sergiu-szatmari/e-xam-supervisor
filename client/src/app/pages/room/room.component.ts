@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NbToastrService } from '@nebular/theme';
 import 'webrtc-adapter';
-import { OldPeerService } from '../../shared/services/old-peer.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { MediaService } from '../../shared/services/media.service';
 import { BehaviorSubject } from 'rxjs';
@@ -51,8 +50,10 @@ export class RoomComponent implements OnInit, OnDestroy {
         if (connected) {
           this.roomStateSubject.next(RoomState.call);
 
-          const { user } = await this.mediaService.getStreamClone({ user: true, screen: false });
-          this.peerService.initiateCall(user);
+          const { user } = await this.mediaService.getStreamClone({ user: true, screen: true });
+
+          this.peerService.initiateCall(user, 'user');
+          // this.peerService.initiateCall(screen, 'screen');
         }
       });
 
@@ -66,6 +67,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.mediaService.closeStreams();
+    this.roomStateSubject.next(RoomState.idle);
   }
 
   public onAttendeeNameType(name: string) {
@@ -98,8 +100,6 @@ export class RoomComponent implements OnInit, OnDestroy {
       // If peer disconnects successfully
       // (peer exists before, was connected, etc)
       this.peerService.disconnect();
-      // this.oldPeerService.disconnect();
-
       this.roomStateSubject.next(RoomState.endedCall);
       this.chatService.clear();
     }

@@ -1,6 +1,6 @@
-<div class="container" [class.include-chat]="peerId">
-  <div class="room-container" [class.idle]="!peerId">
-    <button *ngIf="!peerId"
+<div class="container" [class.include-chat]="peerService.connected$ | async">
+  <div class="room-container" [class.idle]="!(peerService.connected$ | async)">
+    <button *ngIf="!(peerService.connected$ | async)"
             nbButton
             status="info" (click)="onCreateRoom()">
       <nb-icon icon="people-outline"></nb-icon>
@@ -8,23 +8,18 @@
     </button>
 
     <div class="attendees-previews">
-<!--      <ng-container *ngFor="let _ of [1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5]">-->
-        <div class="attendee-preview" *ngFor="let connection of connections | keyvalue">
-          <app-video-container *ngFor="let connectionObj of connection.value.connections"
-                               [stream]="connectionObj.stream"
-                               [label]="connection.value.peerData.name || connection.key"
-                               (click)="onFocusMode()"
-         ></app-video-container>
-        </div>
-<!--      </ng-container>-->
+      <div class="attendee-preview" *ngFor="let stream of streams">
+        <app-video-container [stream]="stream"
+                             [label]="'some name'"
+        ></app-video-container>
     </div>
   </div>
 
-  <div class="chat-container" *ngIf="peerId">
+  <div class="chat-container" *ngIf="peerService.connected$ | async">
     <div class="room-id-panel">
       <span class="label">Room ID</span>
 
-      <input type="text" nbInput [ngModel]="peerId" disabled>
+      <input type="text" nbInput [ngModel]="peerService.peerId" disabled>
 
       <button nbButton [outline]="copiedToClipBoard" status="info" (click)="onCopyToClipBoard()" >
         <nb-icon [icon]="copiedToClipBoard ? 'checkmark-square-2-outline' : 'clipboard-outline'"></nb-icon>
@@ -35,7 +30,7 @@
     <div class="chat">
       <ul class="messages-box">
         <li class="message"
-            *ngFor="let chatMessage of chatMessages"
+            *ngFor="let chatMessage of (chatService.chatMessages$ | async)"
             [ngClass]="{ 'system': chatMessage.from === 'system', 'to': chatMessage.from === 'supervisor', 'from': chatMessage.from !== 'supervisor' }"
         >
           <span class="message-header" *ngIf="chatMessage.from === 'system'; else notSystemMessage">

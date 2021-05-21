@@ -19,7 +19,8 @@ export class RoomPeerService extends PeerService {
 
   protected username: string;
   protected roomId: string;
-  protected call: MediaConnection;
+  protected userCall: MediaConnection;
+  protected screenCall: MediaConnection;
 
   constructor(protected chatService: ChatService) {
     super();
@@ -50,15 +51,22 @@ export class RoomPeerService extends PeerService {
   public disconnect(): boolean {
     if (!this.peer || !this.peerId) return false;
 
-    this.call.close();
+    this.userCall?.close();
+    this.screenCall?.close();
+    this.connection.close();
+    this.peer.disconnect();
     this.peer.destroy();
     this.peer = null;
     this.peerId = null;
     return true;
   }
 
-  public initiateCall(stream: MediaStream) {
-    this.call = this.peer.call(this.roomId, stream);
+  public initiateCall(stream: MediaStream, streamType: 'user' | 'screen') {
+    if (streamType === 'user') {
+      this.userCall = this.peer.call(this.roomId, stream, { metadata: 'user' });
+    } else {
+      this.screenCall = this.peer.call(this.roomId, stream, { metadata: 'screen'});
+    }
   }
 
   public onConnectionOpen = () => {
