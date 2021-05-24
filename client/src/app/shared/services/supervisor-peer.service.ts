@@ -7,6 +7,7 @@ import { ChatMessage, Message, MessageType, SetupPeerInformation } from '../mode
 import { Events } from '../models/events';
 import { BehaviorSubject } from 'rxjs';
 import { PeerConnections } from '../models/peer-connections';
+import { StreamOptions, StreamType } from '../models/stream';
 
 @Injectable({
   providedIn: 'root'
@@ -32,13 +33,10 @@ export class SupervisorPeerService extends PeerService {
       path, port, secure,
       host: url, debug: 1,
     });
-    console.log('Peer created');
 
     this.peer.on('open', this.onPeerOpen);
     this.peer.on('connection', this.onPeerConnection);
     this.peer.on('call', this.onPeerCall);
-
-    console.log(`Room created`);
   }
 
   public disconnect(): boolean {
@@ -55,7 +53,6 @@ export class SupervisorPeerService extends PeerService {
 
   public onPeerOpen = () => {
     this.peerId = this.peer.id;
-    console.log(`(${ this.peerId })`);
 
     this.connectedSubject.next(true);
 
@@ -68,8 +65,6 @@ export class SupervisorPeerService extends PeerService {
   }
 
   public onPeerConnection = (connection: DataConnection) => {
-    console.log(`onConnection`);
-
     if (!this.connections[ connection.peer ]) {
       this.connections[ connection.peer ] = {
         dataConnection: connection,
@@ -77,7 +72,7 @@ export class SupervisorPeerService extends PeerService {
         calls: []
       };
 
-      console.log(this.connections);
+      console.log({ connections: this.connections });
       this.connectionsSubject.next(this.connections);
     }
     connection.on('close', this.onConnectionClose(connection.peer));
@@ -92,35 +87,22 @@ export class SupervisorPeerService extends PeerService {
   }
 
   public onPeerCall = (call: MediaConnection) => {
-    console.log('onPeerCall');
-
     const remotePeerId = call.peer;
 
     call.on('error', (err) => { console.error(`Call error`, err); })
     call.on('stream', (remoteStream) => {
       if (this.connections[ remotePeerId ]
         .streams
-        .find(stream => stream.id === remoteStream.id)) return;
+        .find(({ stream }) => stream.id === remoteStream.id)) return;
 
-      this.connections[ remotePeerId ].streams.push(remoteStream);
+      if (!Object.values(StreamType).includes(call.metadata)) return;
+
+      const type = call.metadata;
+      this.connections[ remotePeerId ].streams.push({ type, stream: remoteStream });
       this.connectionsSubject.next(this.connections);
-      // const peerConnection = this.connections[ peer ];
-      // if (!peerConnection) {
-      //   // Added connection with peer if it does not exits
-      //   this.connections[ peer ].connections.push({ connectionId: call.connectionId, stream: remoteStream });
-      //   return;
-      // }
-      //
-      // // Connection with peer already exists
-      // const connection = peerConnection.connections.find((conn) => conn.connectionId === call.connectionId);
-      // if (!connection) {
-      //   // Current remoteStream was not sent before
-      //   peerConnection.connections.push({ connectionId: call.connectionId, stream: remoteStream })
-      // } else {
-      //   // Set the current remoteStream if the
-      //   // connection exists but the stream doesn't
-      //   connection.stream = connection.stream || remoteStream;
-      // }
+
+      console.log(`${ remotePeerId }`);
+      console.log(`${ call.metadata } stream -> ${ (call as any).remoteStream.id }`);
     });
 
     call.answer();
@@ -129,15 +111,15 @@ export class SupervisorPeerService extends PeerService {
       this.connections[ remotePeerId ].calls.push(call);
     }
 
+
     this.connectionsSubject.next(this.connections);
-    console.log(`Call answered`, { connections: this.connections });
   }
 
   // Connection handlers
   public onConnectionClose = (remotePeerId: string) =>
     () => {
     const username = this.connections[ remotePeerId ].username;
-    this.connections[ remotePeerId ].streams.forEach(stream => stream.getTracks().forEach(track => track.stop()));
+    this.connections[ remotePeerId ].streams.forEach(({ stream }) => stream.getTracks().forEach(track => track.stop()));
     this.connections[ remotePeerId ].calls.forEach(call => call.close());
     this.connections[ remotePeerId ].dataConnection.close();
     delete this.connections[ remotePeerId ];
@@ -199,6 +181,22 @@ export class SupervisorPeerService extends PeerService {
           ts: new Date()
         }
       }));
+    }
+  }
+
+  public sendStreamToggleBroadcast(toggle: boolean, stream: StreamOptions, exceptions: string[]) {
+    for (const remotePeerId in this.connections) {
+      if (exceptions.includes(remotePeerId)) continue;
+
+      this.connections[ remotePeerId ]
+        .dataConnection
+        .send(Message.create({
+          type: Events.streamToggle,
+          payload: {
+            from: this.peerId,
+            toggle, stream,
+          }
+        }));
     }
   }
 }

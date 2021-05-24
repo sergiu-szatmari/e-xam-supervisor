@@ -1,11 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MediaStreamsObject } from '../models/media';
 import { BehaviorSubject } from 'rxjs';
-
-interface StreamOptions {
-  user: boolean;
-  screen: boolean
-}
+import { StreamOptions, StreamType } from '../models/stream';
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +25,6 @@ export class MediaService {
 
   private async loadStreams() {
     try {
-      console.log('loadStreams');
       const [ userStream, screenStream ] = await Promise.all([
         navigator.mediaDevices.getUserMedia({ audio: true, video: true }),
 
@@ -41,7 +36,6 @@ export class MediaService {
       this.screenStream = screenStream;
 
       this.streamingSubject.next(true);
-      console.log(this.streamingSubject.value);
     } catch (err) {
       console.error(err);
       // TODO: Proper error handling
@@ -89,5 +83,18 @@ export class MediaService {
 
   public requestDisconnect() {
     this.disconnectRequestSubject.next(true);
+  }
+
+  public toggleCloneStream(toggle: boolean, type: StreamType) {
+    if (type === StreamType.user) {
+      this.remoteWebcamStream
+        .getTracks()
+        .forEach(track => track.enabled = toggle);
+    } else {
+      this.remoteScreenStream
+        .getTracks()
+        .forEach(track => track.enabled = toggle);
+    }
+    console.log(`toggleCloneStream`, toggle, type, this.remoteWebcamStream);
   }
 }

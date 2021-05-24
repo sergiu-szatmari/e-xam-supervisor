@@ -1,4 +1,5 @@
 export enum Events {
   setName = 'setName',
-  chatMessage = 'chatMessage'
+  chatMessage = 'chatMessage',
+  streamToggle = 'streamToggle',
 }

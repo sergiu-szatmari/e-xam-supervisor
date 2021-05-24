@@ -1,5 +1,6 @@
 import { Events } from './events';
 import { TypeGuards } from '../utils/type.utils';
+import { StreamOptions } from './stream';
 
 // Attendee => Supervisor
 export interface SetupPeerInformation {
@@ -14,8 +15,23 @@ export interface ChatMessage {
   ts: Date;
 }
 
+export interface StreamToggleOptions {
+  // Peer ID
+  from: string;
 
-export type PeerMessagePayload = SetupPeerInformation | ChatMessage;
+  // For which the 'toggle action will apply
+  stream: StreamOptions;
+
+  // Action:
+  //  - true (start/resume streaming)
+  //  - false (pause streaming)
+  toggle: boolean;
+}
+
+export type PeerMessagePayload =
+  SetupPeerInformation
+  | ChatMessage
+  | StreamToggleOptions;
 
 export interface PeerMessage {
   type: Events;
@@ -42,18 +58,18 @@ export class Message {
     if (!msg) throw new Error('Invalid message');
     if (!msg.type || !Object.values(Events).includes(msg.type)) throw new Error('Invalid message (invalid type');
 
-    switch (msg.type) {
-      case Events.setName:
-        if (TypeGuards.isSetupPeerInformation(msg.payload)) {
-          msg.payload = msg.payload as SetupPeerInformation;
-        }
-        break;
-      case Events.chatMessage:
-        if (TypeGuards.isChatMessage(msg.payload)) {
-          msg.payload = msg.payload as ChatMessage;
-        }
-        break;
-    }
+    // switch (msg.type) {
+    //   case Events.setName:
+    //     if (TypeGuards.isSetupPeerInformation(msg.payload)) {
+    //       msg.payload = msg.payload as SetupPeerInformation;
+    //     }
+    //     break;
+    //   case Events.chatMessage:
+    //     if (TypeGuards.isChatMessage(msg.payload)) {
+    //       msg.payload = msg.payload as ChatMessage;
+    //     }
+    //     break;
+    // }
 
     return msg;
   }

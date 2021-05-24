@@ -3,10 +3,10 @@ import { PeerService } from './peer.service';
 import Peer, { DataConnection, MediaConnection } from 'peerjs';
 import { environment } from '../../../environments/environment';
 import { ChatService } from './chat.service';
-import { ChatMessage, Message, MessageType } from '../models/message';
+import { ChatMessage, Message, MessageType, StreamToggleOptions } from '../models/message';
 import { Events } from '../models/events';
 import { MediaService } from './media.service';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { StreamType } from '../models/stream';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +22,10 @@ export class RoomPeerService extends PeerService {
   protected userCall: MediaConnection;
   protected screenCall: MediaConnection;
 
-  constructor(protected chatService: ChatService) {
+  constructor(
+    protected chatService: ChatService,
+    protected mediaService: MediaService
+  ) {
     super();
   }
 
@@ -34,7 +37,6 @@ export class RoomPeerService extends PeerService {
       path, port, secure,
       host: url, debug: 2,
     });
-    console.log('Peer created');
 
     this.peer.on('open', () => {
       this.peerId = this.peer.id;
@@ -63,16 +65,14 @@ export class RoomPeerService extends PeerService {
 
   public initiateCall(stream: MediaStream, streamType: 'user' | 'screen') {
     if (streamType === 'user') {
-      this.userCall = this.peer.call(this.roomId, stream, { metadata: 'user' });
+      this.userCall = this.peer.call(this.roomId, stream, { metadata: StreamType.user });
     } else {
-      this.screenCall = this.peer.call(this.roomId, stream, { metadata: 'screen'});
+      this.screenCall = this.peer.call(this.roomId, stream, { metadata: StreamType.screen });
     }
   }
 
   public onConnectionOpen = () => {
-    console.log('onConnectionOpen');
     this.connectedSubject.next(true);
-    console.log(this.connectedSubject.value);
 
     // Adding the first info message in chat
     this.chatService.newMessage({
@@ -90,7 +90,6 @@ export class RoomPeerService extends PeerService {
   }
 
   public onConnectionData = (data) => {
-    console.log('onConnectionData');
     const { type, payload } = Message.parse(data);
 
     switch (type) {
@@ -102,6 +101,19 @@ export class RoomPeerService extends PeerService {
           from: 'supervisor',
           type: chatMessageType
         });
+        break;
+
+      case Events.streamToggle:
+        const { from, stream, toggle } = payload as StreamToggleOptions;
+
+        // Bad sender
+        if (from !== this.roomId) return;
+
+        if (!toggle) this.userCall.peerConnection.getSenders().forEach(async sender => sender.replaceTrack(null));
+
+        if (stream.user) this.mediaService.toggleCloneStream(toggle, StreamType.user);
+        if (stream.screen) this.mediaService.toggleCloneStream(toggle, StreamType.screen);
+        break;
     }
   }
 

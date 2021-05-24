@@ -8,9 +8,10 @@
     </button>
 
     <div class="attendees-previews">
-      <div class="attendee-preview" *ngFor="let stream of streams">
-        <app-video-container [stream]="stream"
-                             [label]="'some name'"
+      <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
+        <app-video-container [stream]="entry.stream"
+                             [label]="entry.username"
+                             (click)="onFocusMode(null)"
         ></app-video-container>
     </div>
   </div>

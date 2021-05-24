@@ -6,6 +6,7 @@ import { MediaService } from '../../shared/services/media.service';
 import { ChatService } from '../../shared/services/chat.service';
 import { PeerConnections } from '../../shared/models/peer-connections';
 import { NbToastrService } from '@nebular/theme';
+import { StreamType } from '../../shared/models/stream';
 
 @UntilDestroy()
 @Component({
@@ -17,7 +18,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
 
   broadcastChatMessage = '';
 
-  streams: MediaStream[] = [];
+  streams: { username: string; stream: MediaStream }[] = [];
 
   // UI Utils
   copiedToClipBoard = false;
@@ -50,10 +51,18 @@ export class SupervisorComponent implements OnInit, OnDestroy {
 
         // tslint:disable-next-line:forin
         for (const remotePeerId in connections) {
-          connections[ remotePeerId ].streams.forEach(stream => streams.push(stream));
+          connections[ remotePeerId ]
+            .streams
+            .forEach(({ type, stream }) => {
+              if (type === StreamType.user) {
+                streams.push({
+                  username: connections[ remotePeerId ].username || 'Unnamed user',
+                  stream
+                });
+              }
+            });
         }
         this.streams = streams;
-        console.log(`Streams --> `, this.streams);
       });
   }
 
@@ -106,7 +115,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
     }
   }
 
-  public onFocusMode() {
-    alert('tba');
+  public onFocusMode(remotePeerId: string) {
+    // this.peerService.tmp(Object.keys(this.peerService.connections)[0]);
   }
 }
