@@ -15,8 +15,7 @@ const peerServer = ExpressPeerServer(server, {
 });
 
 peerServer.on('connection', (client) => {
-  console.log(client);
-  console.log(client.getId());
+  console.log(`New peer: `, client.getId());
 });
 
 app.use(peerServer);
