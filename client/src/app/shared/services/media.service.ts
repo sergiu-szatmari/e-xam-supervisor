@@ -15,6 +15,13 @@ export class MediaService {
   public get streaming$() { return this.streamingSubject.asObservable(); }
   public set streaming(toggleStreamingState: boolean) { this.streamingSubject.next(toggleStreamingState); }
 
+  private focusedViewSubject = new BehaviorSubject(false);
+  public get focusedView$() { return this.focusedViewSubject.asObservable(); }
+  public set focusedView(toggleStreamingState: boolean) { this.focusedViewSubject.next(toggleStreamingState); }
+
+  private backToGridViewRequestSubject = new BehaviorSubject(false);
+  public get backToGridViewRequest$() { return this.backToGridViewRequestSubject.asObservable(); }
+
   private disconnectRequestSubject = new BehaviorSubject(false);
   public get disconnectRequest$() { return this.disconnectRequestSubject.asObservable(); }
 
@@ -85,16 +92,7 @@ export class MediaService {
     this.disconnectRequestSubject.next(true);
   }
 
-  public toggleCloneStream(toggle: boolean, type: StreamType) {
-    if (type === StreamType.user) {
-      this.remoteWebcamStream
-        .getTracks()
-        .forEach(track => track.enabled = toggle);
-    } else {
-      this.remoteScreenStream
-        .getTracks()
-        .forEach(track => track.enabled = toggle);
-    }
-    console.log(`toggleCloneStream`, toggle, type, this.remoteWebcamStream);
+  public requestBackToGridView() {
+    this.backToGridViewRequestSubject.next(true);
   }
 }

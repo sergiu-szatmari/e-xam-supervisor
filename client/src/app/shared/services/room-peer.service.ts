@@ -63,11 +63,22 @@ export class RoomPeerService extends PeerService {
     return true;
   }
 
-  public initiateCall(stream: MediaStream, streamType: 'user' | 'screen') {
-    if (streamType === 'user') {
-      this.userCall = this.peer.call(this.roomId, stream, { metadata: StreamType.user });
-    } else {
-      this.screenCall = this.peer.call(this.roomId, stream, { metadata: StreamType.screen });
+  public initiateCall(stream: MediaStream, streamType: StreamType) {
+    switch (streamType) {
+      case StreamType.user:
+        this.userCall = this.peer.call(this.roomId, stream, { metadata: StreamType.user });
+        console.log(`initiateCall`, this.userCall);
+        this.userCall.on('close', () => { console.log('Call closed'); });
+        break;
+
+      case StreamType.screen:
+        this.screenCall = this.peer.call(this.roomId, stream, { metadata: StreamType.screen });
+        console.log(`initiateCall`, this.screenCall);
+        this.screenCall.on('close', () => { console.log('Call closed'); });
+        break;
+
+      default:
+        throw new Error('Invalid stream type.');
     }
   }
 
@@ -89,8 +100,9 @@ export class RoomPeerService extends PeerService {
     }));
   }
 
-  public onConnectionData = (data) => {
+  public onConnectionData = async (data) => {
     const { type, payload } = Message.parse(data);
+    console.log(`Message received (${ type })`, payload);
 
     switch (type) {
       case Events.chatMessage:
@@ -104,15 +116,26 @@ export class RoomPeerService extends PeerService {
         break;
 
       case Events.streamToggle:
-        const { from, stream, toggle } = payload as StreamToggleOptions;
+        const { from, stream: streamOptions, toggle } = payload as StreamToggleOptions;
 
         // Bad sender
         if (from !== this.roomId) return;
 
-        if (!toggle) this.userCall.peerConnection.getSenders().forEach(async sender => sender.replaceTrack(null));
-
-        if (stream.user) this.mediaService.toggleCloneStream(toggle, StreamType.user);
-        if (stream.screen) this.mediaService.toggleCloneStream(toggle, StreamType.screen);
+        if (!toggle) {
+          if (streamOptions.user) {
+            // this.userCall.close();
+            this.userCall = null;
+          }
+          if (streamOptions.screen) {
+            this.screenCall.close();
+            this.screenCall = null;
+          }
+        } else {
+          const streams = await this.mediaService.getStreamClone(streamOptions);
+          if (streamOptions.user) this.initiateCall(streams.user, StreamType.user);
+          if (streamOptions.screen) this.initiateCall(streams.screen, StreamType.screen);
+          console.log({ streams });
+        }
         break;
     }
   }

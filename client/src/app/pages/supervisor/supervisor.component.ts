@@ -8,6 +8,11 @@ import { PeerConnections } from '../../shared/models/peer-connections';
 import { NbToastrService } from '@nebular/theme';
 import { StreamType } from '../../shared/models/stream';
 
+enum RoomView {
+  grid = 'grid',
+  focused = 'focused'
+}
+
 @UntilDestroy()
 @Component({
   selector: 'app-supervisor',
@@ -18,9 +23,16 @@ export class SupervisorComponent implements OnInit, OnDestroy {
 
   broadcastChatMessage = '';
 
-  streams: { username: string; stream: MediaStream }[] = [];
+  streams: { peerId: string, username: string; stream: MediaStream }[] = [];
+
+  // Focused mode
+  userStream: MediaStream;
+  screenStream: MediaStream;
+  focusedRemotePeerId: string;
 
   // UI Utils
+  RoomView = RoomView;
+  roomView: RoomView = RoomView.grid;
   copiedToClipBoard = false;
 
   constructor(
@@ -44,24 +56,32 @@ export class SupervisorComponent implements OnInit, OnDestroy {
         if (disconnect) this.onLeaveRoom();
       });
 
+    this.mediaService
+      .backToGridViewRequest$
+      .pipe(untilDestroyed(this))
+      .subscribe(backToGrid => {
+        if (backToGrid) this.onBackToGrid();
+      });
+
     this.peerService.connections$
       .pipe(untilDestroyed(this))
       .subscribe((connections: PeerConnections) => {
         const streams = [];
 
-        // tslint:disable-next-line:forin
-        for (const remotePeerId in connections) {
-          connections[ remotePeerId ]
-            .streams
-            .forEach(({ type, stream }) => {
-              if (type === StreamType.user) {
-                streams.push({
-                  username: connections[ remotePeerId ].username || 'Unnamed user',
-                  stream
-                });
-              }
-            });
-        }
+        Object.keys(connections)
+          .forEach(remotePeerId => {
+            connections[ remotePeerId ]
+              .streams
+              .forEach(({ type, stream }) => {
+                if (type === StreamType.user) {
+                  streams.push({
+                    username: connections[ remotePeerId ].username || 'Unnamed user',
+                    stream, peerId: remotePeerId,
+                  });
+                }
+              });
+          });
+
         this.streams = streams;
       });
   }
@@ -89,10 +109,10 @@ export class SupervisorComponent implements OnInit, OnDestroy {
     document.body.removeChild(text);
 
     this.copiedToClipBoard = true;
+    setTimeout(() => this.copiedToClipBoard = false, 1200);
   }
 
   public onBroadcastChatMessage() {
-
     this.chatService.newMessage({
       from: 'supervisor',
       username: 'Supervisor',
@@ -108,7 +128,6 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   public onLeaveRoom() {
     try {
       this.peerService.disconnect();
-      // TODO: Send "close" event to all attendees ? / kick
       this.mediaService.streaming = false;
     } catch (err) {
       this.toastr.danger(err.message);
@@ -116,6 +135,83 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   }
 
   public onFocusMode(remotePeerId: string) {
-    // this.peerService.tmp(Object.keys(this.peerService.connections)[0]);
+    for (const peerId in this.peerService.connections) {
+      if (peerId === remotePeerId) continue;
+
+      this.peerService.connections[ peerId ]
+        .streams
+        .forEach(({ type, stream }) => {
+          if (type === StreamType.user) stream.getTracks().forEach(track => track.enabled = false)
+        })
+    }
+
+    if (this.peerService.connections[ remotePeerId ].streams.length < 2) {
+      // Request "Screen" stream to peer
+      // if wasn't requested before
+      this.peerService.requestScreenStream(remotePeerId);
+    }
+
+
+    console.log(this.peerService.connections);
+
+    setTimeout(() => {
+      this.peerService
+        .connections[ remotePeerId ]
+        .streams
+        .find(({ type }) => type === StreamType.screen)
+        .stream
+        .getTracks()
+        .forEach(track => track.enabled = true);
+
+      this.userStream = this.peerService
+        .connections[ remotePeerId ]
+        .streams
+        .find(({ type }) => type === StreamType.user)
+        .stream;
+
+      this.screenStream = this.peerService
+        .connections[ remotePeerId ]
+        .streams
+        .find(({ type }) => type === StreamType.screen)
+        .stream;
+
+      this.focusedRemotePeerId = remotePeerId;
+      this.roomView = RoomView.focused;
+      this.mediaService.focusedView = true;
+    }, 500);
+  }
+
+  public onBackToGrid() {
+    this.peerService.connections[ this.focusedRemotePeerId ]
+      .streams
+      .find(({ type }) => type === StreamType.screen)
+      .stream
+      .getTracks()
+      .forEach(track => {
+        track.enabled = false;
+      });
+
+    for (const peerId in this.peerService.connections) {
+      if (peerId === this.focusedRemotePeerId) continue;
+
+      this.peerService.connections[ peerId ]
+        .streams
+        .find(({ type }) => type === StreamType.user)
+        .stream
+        .getTracks()
+        .forEach(track => {
+          track.enabled = true;
+        });
+    }
+    // this.peerService.sendStreamToggleMessage(this.focusedRemotePeerId, false, { user: false, screen: true });
+    // this.peerService.sendStreamToggleBroadcast(true, { user: true, screen: false }, [ this.focusedRemotePeerId ]);
+
+    setTimeout(() => {
+      this.focusedRemotePeerId = null;
+      this.roomView = RoomView.grid;
+      this.mediaService.focusedView = false;
+      this.userStream = null;
+      this.screenStream = null;
+    }, 500);
   }
 }

@@ -7,6 +7,7 @@ import { BehaviorSubject } from 'rxjs';
 import { ChatService } from '../../shared/services/chat.service';
 import { RoomPeerService } from '../../shared/services/room-peer.service';
 import { MessageType } from '../../shared/models/message';
+import { StreamType } from '../../shared/models/stream';
 
 enum RoomState {
   idle = 'idle',
@@ -50,10 +51,9 @@ export class RoomComponent implements OnInit, OnDestroy {
         if (connected) {
           this.roomStateSubject.next(RoomState.call);
 
-          const { user, screen } = await this.mediaService.getStreamClone({ user: true, screen: true });
+          const { user } = await this.mediaService.getStreamClone({ user: true, screen: false });
 
-          this.peerService.initiateCall(user, 'user');
-          this.peerService.initiateCall(screen, 'screen');
+          this.peerService.initiateCall(user, StreamType.user);
         }
       });
 

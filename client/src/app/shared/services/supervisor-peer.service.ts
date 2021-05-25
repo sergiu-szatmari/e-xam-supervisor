@@ -78,12 +78,6 @@ export class SupervisorPeerService extends PeerService {
     connection.on('close', this.onConnectionClose(connection.peer));
 
     connection.on('data', this.onConnectionData(connection.peer));
-
-    //   // Add initial empty connection object
-    //   // if peer is was not connected before
-    //   if (!this.connections[ connection.peer ]) {
-    //     this.connections[ connection.peer ] = { peerData: { }, connections: [], connection };
-    //   }
   }
 
   public onPeerCall = (call: MediaConnection) => {
@@ -105,12 +99,24 @@ export class SupervisorPeerService extends PeerService {
       console.log(`${ call.metadata } stream -> ${ (call as any).remoteStream.id }`);
     });
 
+    call.on('close', () => {
+      if (!this.connections[ remotePeerId ]) return;
+
+      const idx = this.connections[ remotePeerId ]
+        .calls
+        .findIndex(c => (c as any).options.connectionId === (call as any).options.connectionId);
+
+      if (idx !== -1) {
+        this.connections[ remotePeerId ].calls.splice(idx, 1);
+        this.connectionsSubject.next(this.connections);
+      }
+    })
+
     call.answer();
 
     if (this.connections[ remotePeerId ]) {
       this.connections[ remotePeerId ].calls.push(call);
     }
-
 
     this.connectionsSubject.next(this.connections);
   }
@@ -168,8 +174,6 @@ export class SupervisorPeerService extends PeerService {
   public broadcastChatMessage(chatMessage: string) {
     // tslint:disable-next-line:forin
     for (const remotePeerId in this.connections) {
-      // const dataConnection = this.peer.connections[ remotePeerId ]
-      //   .find(connection => connection.type === 'data');
       const dataConnection = this.connections[ remotePeerId ].dataConnection;
       dataConnection?.send(Message.create({
         type: Events.chatMessage,
@@ -184,19 +188,18 @@ export class SupervisorPeerService extends PeerService {
     }
   }
 
-  public sendStreamToggleBroadcast(toggle: boolean, stream: StreamOptions, exceptions: string[]) {
-    for (const remotePeerId in this.connections) {
-      if (exceptions.includes(remotePeerId)) continue;
+  public requestScreenStream(peerId: string) {
+    if (!this.connections[ peerId ]) return;
 
-      this.connections[ remotePeerId ]
-        .dataConnection
-        .send(Message.create({
-          type: Events.streamToggle,
-          payload: {
-            from: this.peerId,
-            toggle, stream,
-          }
-        }));
-    }
+    this.connections[ peerId ]
+      .dataConnection
+      .send(Message.create({
+        type: Events.streamToggle,
+        payload: {
+          from: this.peerId,
+          toggle: true,
+          stream: { user: false, screen: true }
+        }
+      }))
   }
 }

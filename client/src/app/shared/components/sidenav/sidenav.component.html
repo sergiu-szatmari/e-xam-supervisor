@@ -6,6 +6,12 @@
                  class="nav-link"
                  [class.hidden]="(mediaService.streaming$ | async)"
   ></app-link-view>
+  <app-link-view id="back-to-grid-view"
+                 [class.hidden]="!(mediaService.focusedView$ | async)"
+                 class="nav-link"
+                 (click)="mediaService.requestBackToGridView()"
+                 [item]="{ title: 'Back to Grid', evaIcon: 'grid-outline', link: '' }"
+  ></app-link-view>
   <app-link-view id="leave-room-button"
                  [class.hidden]="!(mediaService.streaming$ | async)"
                  class="nav-link"

@@ -1,64 +1,75 @@
 <div class="container" [class.include-chat]="peerService.connected$ | async">
   <div class="room-container" [class.idle]="!(peerService.connected$ | async)">
-    <button *ngIf="!(peerService.connected$ | async)"
-            nbButton
-            status="info" (click)="onCreateRoom()">
-      <nb-icon icon="people-outline"></nb-icon>
-      New room
-    </button>
-
-    <div class="attendees-previews">
-      <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
-        <app-video-container [stream]="entry.stream"
-                             [label]="entry.username"
-                             (click)="onFocusMode(null)"
-        ></app-video-container>
-    </div>
-  </div>
-
-  <div class="chat-container" *ngIf="peerService.connected$ | async">
-    <div class="room-id-panel">
-      <span class="label">Room ID</span>
-
-      <input type="text" nbInput [ngModel]="peerService.peerId" disabled>
-
-      <button nbButton [outline]="copiedToClipBoard" status="info" (click)="onCopyToClipBoard()" >
-        <nb-icon [icon]="copiedToClipBoard ? 'checkmark-square-2-outline' : 'clipboard-outline'"></nb-icon>
-        {{ copiedToClipBoard ? 'Copied to clipboard' : 'Copy to clipboard' }}
+    <ng-container *ngIf="roomView === RoomView.grid; else focusedViewTemplate">
+      <button *ngIf="!(peerService.connected$ | async)"
+              class="new-room-btn"
+              nbButton
+              status="info" (click)="onCreateRoom()">
+        <nb-icon icon="people-outline"></nb-icon>
+        New room
       </button>
-    </div>
 
-    <div class="chat">
-      <ul class="messages-box">
-        <li class="message"
-            *ngFor="let chatMessage of (chatService.chatMessages$ | async)"
-            [ngClass]="{ 'system': chatMessage.from === 'system', 'to': chatMessage.from === 'supervisor', 'from': chatMessage.from !== 'supervisor' }"
-        >
-          <span class="message-header" *ngIf="chatMessage.from === 'system'; else notSystemMessage">
-            <i>{{ chatMessage.message }}</i>
-            <br/>
-            ({{ chatMessage.ts | date: 'HH:mm:ss' }})
-          </span>
+      <div class="attendees-previews">
+          <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
+            <app-video-container [stream]="entry.stream"
+                                 [label]="entry.username"
+                                 (click)="onFocusMode(entry.peerId)"
+            ></app-video-container>
+        </div>
+      </div>
+    </ng-container>
 
-          <ng-template #notSystemMessage>
-            <span class="message-header">
-              [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{ chatMessage.from !== 'supervisor' ? chatMessage.username : 'You (Broadcast)' }}:</i>
-            </span>
-            <span>{{ chatMessage.message }}</span>
-          </ng-template>
-        </li>
-      </ul>
-      <div class="typing-box">
-        <input type="text" nbInput
-               shape="semi-round"
-               placeholder="Send message to all"
-               [(ngModel)]="broadcastChatMessage"
-        >
-        <button nbButton status="info"
-                (click)="onBroadcastChatMessage()"
-                [disabled]="!(broadcastChatMessage?.length > 0)">
-          <nb-icon icon="paper-plane-outline"></nb-icon>
+    <ng-template #focusedViewTemplate>
+      <div class="focused-view-container">
+        <video autoplay muted [srcObject]="userStream"></video>
+        <video autoplay muted [srcObject]="screenStream"></video>
+      </div>
+    </ng-template>
+
+    <div class="chat-container" *ngIf="peerService.connected$ | async">
+      <div class="room-id-panel">
+        <span class="label">Room ID</span>
+
+        <input type="text" nbInput [ngModel]="peerService.peerId" disabled>
+
+        <button nbButton [outline]="copiedToClipBoard" status="info" (click)="onCopyToClipBoard()" >
+          <nb-icon [icon]="copiedToClipBoard ? 'checkmark-square-2-outline' : 'clipboard-outline'"></nb-icon>
+          {{ copiedToClipBoard ? 'Copied to clipboard' : 'Copy to clipboard' }}
         </button>
+      </div>
+
+      <div class="chat">
+        <ul class="messages-box">
+          <li class="message"
+              *ngFor="let chatMessage of (chatService.chatMessages$ | async)"
+              [ngClass]="{ 'system': chatMessage.from === 'system', 'to': chatMessage.from === 'supervisor', 'from': chatMessage.from !== 'supervisor' }"
+          >
+            <span class="message-header" *ngIf="chatMessage.from === 'system'; else notSystemMessage">
+              <i>{{ chatMessage.message }}</i>
+              <br/>
+              ({{ chatMessage.ts | date: 'HH:mm:ss' }})
+            </span>
+
+            <ng-template #notSystemMessage>
+              <span class="message-header">
+                [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{ chatMessage.from !== 'supervisor' ? chatMessage.username : 'You (Broadcast)' }}:</i>
+              </span>
+              <span>{{ chatMessage.message }}</span>
+            </ng-template>
+          </li>
+        </ul>
+        <div class="typing-box">
+          <input type="text" nbInput
+                 shape="semi-round"
+                 placeholder="Send message to all"
+                 [(ngModel)]="broadcastChatMessage"
+          >
+          <button nbButton status="info"
+                  (click)="onBroadcastChatMessage()"
+                  [disabled]="!(broadcastChatMessage?.length > 0)">
+            <nb-icon icon="paper-plane-outline"></nb-icon>
+          </button>
+        </div>
       </div>
     </div>
   </div>
