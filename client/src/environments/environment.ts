@@ -5,5 +5,7 @@ export const environment = {
     url: 'localhost',
     port: 8080,
     path: '/signal'
-  }
+  },
+
+  recording: false,
 };

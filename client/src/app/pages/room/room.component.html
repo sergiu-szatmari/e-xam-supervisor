@@ -56,8 +56,30 @@
   </div>
 
   <div class="call-state" [class.hidden]="(roomState$ | async) !== RoomState.call">
+<!--    <app-video-container-->
+<!--      [stream]="mediaService.webcamStream"-->
+<!--      [label]="attendeeName"-->
+<!--    ></app-video-container>-->
+
+<!--    <app-video-container-->
+<!--      [stream]="mediaService.remoteWebcamStream"-->
+<!--      label="{{ attendeeName }} (Stream)"-->
+<!--    ></app-video-container>-->
+
+<!--    <app-video-container-->
+<!--      [stream]="mediaService.screenStream"-->
+<!--      label="Screen"-->
+<!--    ></app-video-container>-->
+
+<!--    <app-video-container-->
+<!--      [stream]="mediaService.remoteScreenStream"-->
+<!--      label="Screen (Stream)"-->
+<!--    ></app-video-container>-->
+
     <video autoplay muted [srcObject]="mediaService.webcamStream"></video>
+    <video autoplay muted [srcObject]="mediaService.remoteWebcamStream"></video>
     <video autoplay muted [srcObject]="mediaService.screenStream"></video>
+    <video autoplay muted [srcObject]="mediaService.remoteScreenStream"></video>
   </div>
 
   <div class="ended-call-state" *ngIf="(roomState$ | async) === RoomState.endedCall">

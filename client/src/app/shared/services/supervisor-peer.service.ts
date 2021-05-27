@@ -202,4 +202,19 @@ export class SupervisorPeerService extends PeerService {
         }
       }))
   }
+
+  public toggleStreams(peerIds: string[], options: StreamOptions, toggle: boolean) {
+    peerIds.forEach(peerId => {
+      this.connections[ peerId ]
+        .dataConnection
+        .send(Message.create({
+          type: Events.streamToggle,
+          payload: {
+            from: this.peerId,
+            stream: options,
+            toggle
+          }
+        }))
+    });
+  }
 }

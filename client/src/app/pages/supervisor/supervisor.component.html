@@ -21,6 +21,15 @@
 
     <ng-template #focusedViewTemplate>
       <div class="focused-view-container">
+<!--        <app-video-container-->
+<!--          [stream]="userStream"-->
+<!--          label="{{ focusedRemotePeerUsername }}"-->
+<!--        ></app-video-container>-->
+
+<!--        <app-video-container-->
+<!--          [stream]="screenStream"-->
+<!--          label="{{ focusedRemotePeerUsername }}'s screen"-->
+<!--        ></app-video-container>-->
         <video autoplay muted [srcObject]="userStream"></video>
         <video autoplay muted [srcObject]="screenStream"></video>
       </div>

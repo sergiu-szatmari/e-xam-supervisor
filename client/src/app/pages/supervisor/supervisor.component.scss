@@ -160,7 +160,8 @@
 
       &.hidden { display: none; }
 
-      video { max-height: 40vh; }
+      video { max-height: 40vh; height: 40vh; }
+      app-video-container { max-height: 40vh; height: 40vh; }
     }
 
     button.back-to-grid-btn {

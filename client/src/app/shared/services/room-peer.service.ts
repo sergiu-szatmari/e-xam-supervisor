@@ -121,21 +121,28 @@ export class RoomPeerService extends PeerService {
         // Bad sender
         if (from !== this.roomId) return;
 
-        if (!toggle) {
-          if (streamOptions.user) {
-            // this.userCall.close();
-            this.userCall = null;
+        if (streamOptions.user) this.mediaService.remoteWebcamStream.getTracks().forEach(track => track.enabled = toggle);
+        if (streamOptions.screen) {
+          if (toggle && !this.screenCall) {
+            this.initiateCall(this.mediaService.remoteScreenStream, StreamType.screen);
           }
-          if (streamOptions.screen) {
-            this.screenCall.close();
-            this.screenCall = null;
-          }
-        } else {
-          const streams = await this.mediaService.getStreamClone(streamOptions);
-          if (streamOptions.user) this.initiateCall(streams.user, StreamType.user);
-          if (streamOptions.screen) this.initiateCall(streams.screen, StreamType.screen);
-          console.log({ streams });
+          this.mediaService.remoteScreenStream.getTracks().forEach(track => track.enabled = toggle);
         }
+        // if (!toggle) {
+        //   if (streamOptions.user) {
+        //     // this.userCall.close();
+        //     this.userCall = null;
+        //   }
+        //   if (streamOptions.screen) {
+        //     this.screenCall.close();
+        //     this.screenCall = null;
+        //   }
+        // } else {
+        //   const streams = await this.mediaService.getStreamClone(streamOptions);
+        //   if (streamOptions.user) this.initiateCall(streams.user, StreamType.user);
+        //   if (streamOptions.screen) this.initiateCall(streams.screen, StreamType.screen);
+        //   console.log({ streams });
+        // }
         break;
     }
   }
