@@ -25,9 +25,7 @@ export class RoomPeerService extends PeerService {
   constructor(
     protected chatService: ChatService,
     protected mediaService: MediaService
-  ) {
-    super();
-  }
+  ) { super(); }
 
   public connect(roomId: string, username: string) {
     const { url, path, port } = environment.server;
@@ -124,27 +122,7 @@ export class RoomPeerService extends PeerService {
         if (from !== this.roomId) return;
 
         if (streamOptions.user) this.mediaService.remoteWebcamStream.getTracks().forEach(track => track.enabled = toggle);
-        if (streamOptions.screen) {
-          if (toggle && !this.screenCall) {
-            this.initiateCall(this.mediaService.remoteScreenStream, StreamType.screen);
-          }
-          this.mediaService.remoteScreenStream.getTracks().forEach(track => track.enabled = toggle);
-        }
-        // if (!toggle) {
-        //   if (streamOptions.user) {
-        //     // this.userCall.close();
-        //     this.userCall = null;
-        //   }
-        //   if (streamOptions.screen) {
-        //     this.screenCall.close();
-        //     this.screenCall = null;
-        //   }
-        // } else {
-        //   const streams = await this.mediaService.getStreamClone(streamOptions);
-        //   if (streamOptions.user) this.initiateCall(streams.user, StreamType.user);
-        //   if (streamOptions.screen) this.initiateCall(streams.screen, StreamType.screen);
-        //   console.log({ streams });
-        // }
+        if (streamOptions.screen) this.mediaService.remoteScreenStream.getTracks().forEach(track => track.enabled = toggle);
         break;
     }
   }
@@ -159,6 +137,6 @@ export class RoomPeerService extends PeerService {
         type: MessageType.chat,
         ts: new Date()
       }
-    }))
+    }));
   }
 }

@@ -27,9 +27,6 @@ export class RoomComponent implements OnInit, OnDestroy {
   attendeeName = '';
   roomId: string;
 
-  webcamStream: MediaStream;
-  screenStream: MediaStream;
-
   roomStateSubject = new BehaviorSubject(RoomState.idle);
   public get roomState$() { return this.roomStateSubject.asObservable(); }
 
@@ -53,8 +50,12 @@ export class RoomComponent implements OnInit, OnDestroy {
 
           const { user, screen } = await this.mediaService.getStreamClone({ user: true, screen: true });
 
+          // Initiate both webcam & screenShare media connections
           this.peerService.initiateCall(user, StreamType.user);
           this.peerService.initiateCall(screen, StreamType.screen);
+
+          // "Mute" the video & audio tracks
+          // for the screenSharing stream
           this.mediaService.remoteScreenStream.getTracks().forEach(track => track.enabled = false);
         }
       });

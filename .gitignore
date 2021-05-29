@@ -1,3 +1,4 @@
 .idea/
 .vscode/
 api/config/*
+!api/config/sample.js

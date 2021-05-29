@@ -31,13 +31,7 @@ import { AboutComponent } from './pages/about/about.component';
     NbDatepickerModule.forRoot(),
     NgxPicaModule,
   ],
-  providers: [
-    //   {
-    //     provide: HTTP_INTERCEPTORS,
-    //     useClass: UrlInterceptor,
-    //     multi: true
-    //   },
-  ],
+  providers: [ ],
   bootstrap: [ AppComponent ]
 })
 export class AppModule {

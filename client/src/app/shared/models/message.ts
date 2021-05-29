@@ -1,5 +1,4 @@
 import { Events } from './events';
-import { TypeGuards } from '../utils/type.utils';
 import { StreamOptions } from './stream';
 
 // Attendee => Supervisor
@@ -57,19 +56,6 @@ export class Message {
 
     if (!msg) throw new Error('Invalid message');
     if (!msg.type || !Object.values(Events).includes(msg.type)) throw new Error('Invalid message (invalid type');
-
-    // switch (msg.type) {
-    //   case Events.setName:
-    //     if (TypeGuards.isSetupPeerInformation(msg.payload)) {
-    //       msg.payload = msg.payload as SetupPeerInformation;
-    //     }
-    //     break;
-    //   case Events.chatMessage:
-    //     if (TypeGuards.isChatMessage(msg.payload)) {
-    //       msg.payload = msg.payload as ChatMessage;
-    //     }
-    //     break;
-    // }
 
     return msg;
   }

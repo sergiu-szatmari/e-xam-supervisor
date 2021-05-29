@@ -38,9 +38,7 @@ import {
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { ImagePreloaderDirective } from './directives/image-preloader.directive';
 import { NgSelectModule } from '@ng-select/ng-select';
-import { BackButtonDirective } from './directives/back-button.directive';
 import { ButtonSpinnerDirective } from './directives/button-spinner.directive';
 
 import localeEnGb from '@angular/common/locales/en-GB';
@@ -100,8 +98,6 @@ const usedModules = [
 ];
 
 const componentsList = [
-  ImagePreloaderDirective,
-  BackButtonDirective,
   ButtonSpinnerDirective,
   LogoComponent,
   SidenavComponent,

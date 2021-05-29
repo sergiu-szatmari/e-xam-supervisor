@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { MediaStreamsObject } from '../models/media';
 import { BehaviorSubject } from 'rxjs';
 import { StreamOptions, StreamType } from '../models/stream';
-import RecordRTC, { invokeSaveAsDialog } from 'recordrtc';
+import RecordRTC from 'recordrtc';
 import { environment } from '../../../environments/environment';
 import { UploadService } from './upload.service';
 
@@ -33,8 +33,6 @@ export class MediaService {
 
   private webcamRecorder: RecordRTC;
   private screenRecorder: RecordRTC;
-  private webcamStreamChunks = [];
-  private screenStreamChunks = [];
 
   constructor(protected uploadService: UploadService) { }
 
@@ -56,17 +54,21 @@ export class MediaService {
       const isRecordingEnabled = environment.recording;
       if (isRecordingEnabled) {
 
+        await this.uploadService.init(this.peerId, this.roomId);
+
         this.webcamRecorder = new RecordRTC(this.webcamStream, {
           type: 'video',
           mimeType: 'video/webm;codecs=vp8',
           timeSlice: 2000,
-          ondataavailable: (blob) => this.webcamStreamChunks.push(blob)
+          ondataavailable: (blob) =>
+            this.uploadService.upload(StreamType.user, blob)
         });
         this.screenRecorder = new RecordRTC(this.screenStream, {
           type: 'video',
           mimeType: 'video/webm;codecs=vp8',
           timeSlice: 2000,
-          ondataavailable: (blob) => this.screenStreamChunks.push(blob)
+          ondataavailable: async (blob) =>
+            this.uploadService.upload(StreamType.screen, blob)
         });
 
         this.webcamRecorder.startRecording();
@@ -81,18 +83,13 @@ export class MediaService {
   }
 
   public stopRecording() {
-    this.webcamRecorder.stopRecording(async () => {
-      // const blob = await userRecorder.getBlob();
-      const blob = new Blob(this.webcamStreamChunks, { type: 'video/webm;codecs=vp8' });
-      return this.uploadService.upload(StreamType.user, this.peerId, this.roomId, blob);
-      // invokeSaveAsDialog(blob, 'webcam-recording');
-    });
-    this.screenRecorder.stopRecording(async () => {
-      // const blob = await screenRecorder.getBlob();
-      const blob = new Blob(this.screenStreamChunks, { type: 'video/webm;codecs=vp8' });
-      return this.uploadService.upload(StreamType.screen, this.peerId, this.roomId, blob);
-      // invokeSaveAsDialog(blob, 'screen-recording');
-    });
+    this.webcamRecorder.stopRecording(async () =>
+      this.uploadService.upload(StreamType.user,this.webcamRecorder.getBlob())
+    );
+
+    this.screenRecorder.stopRecording(async () =>
+      this.uploadService.upload(StreamType.screen,this.screenRecorder.getBlob())
+    );
   }
 
   public async getStreamRef(): Promise<MediaStreamsObject> {

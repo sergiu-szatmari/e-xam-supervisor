@@ -8,33 +8,37 @@ import { environment } from '../../../environments/environment';
 })
 export class UploadService {
 
+  private uploadData: { [type in StreamType]?: UploadResponse } = { };
+
   constructor(protected http: HttpClient) { }
 
-  public async upload(streamType: StreamType,
-                      senderPeerId: string,
-                      roomId: string,
-                      blob?: Blob) {
-    const requestObj = {
-      peerId: senderPeerId,
-      recordingType: streamType,
-      mimetype: 'video/webm',
-      roomId
-    };
-
+  public async init(peerId: string, roomId: string) {
     const { uploadUrl } = environment.server;
-    const uploadData = await this.http
-      .post<UploadResponse>(uploadUrl, requestObj)
-      .toPromise();
 
+    await Promise.all(
+      Object.keys(StreamType).map(async (recordingType) => {
+        const requestObj = {
+          peerId, roomId,
+          recordingType,
+          mimetype: 'video/webm'
+        };
+
+        this.uploadData[ recordingType ] = await this.http
+          .post<UploadResponse>(uploadUrl, requestObj)
+          .toPromise()
+      })
+    );
+  }
+
+  public async upload(streamType: StreamType, blob?: Blob) {
     const formData = new FormData();
-    Object.entries(uploadData.fields).forEach(([ key, value ]) => {
+    Object.entries(this.uploadData[ streamType ].fields).forEach(([ key, value ]) => {
       formData.append(key, value);
     });
     formData.append('file', blob);
 
-    const resp = await this.http
-      .post(uploadData.url, formData)
+    await this.http
+      .post(this.uploadData[ streamType ].url, formData)
       .toPromise();
-    console.log({ resp });
   }
 }
