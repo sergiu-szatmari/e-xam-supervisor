@@ -4,6 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import { StreamOptions, StreamType } from '../models/stream';
 import RecordRTC, { invokeSaveAsDialog } from 'recordrtc';
 import { environment } from '../../../environments/environment';
+import { UploadService } from './upload.service';
 
 @Injectable({
   providedIn: 'root'
@@ -35,7 +36,10 @@ export class MediaService {
   private webcamStreamChunks = [];
   private screenStreamChunks = [];
 
-  constructor() { }
+  constructor(protected uploadService: UploadService) { }
+
+  public peerId: string;
+  public roomId: string;
 
   private async loadStreams() {
     try {
@@ -55,13 +59,13 @@ export class MediaService {
         this.webcamRecorder = new RecordRTC(this.webcamStream, {
           type: 'video',
           mimeType: 'video/webm;codecs=vp8',
-          timeSlice: 100,
+          timeSlice: 2000,
           ondataavailable: (blob) => this.webcamStreamChunks.push(blob)
         });
         this.screenRecorder = new RecordRTC(this.screenStream, {
           type: 'video',
           mimeType: 'video/webm;codecs=vp8',
-          timeSlice: 100,
+          timeSlice: 2000,
           ondataavailable: (blob) => this.screenStreamChunks.push(blob)
         });
 
@@ -80,12 +84,14 @@ export class MediaService {
     this.webcamRecorder.stopRecording(async () => {
       // const blob = await userRecorder.getBlob();
       const blob = new Blob(this.webcamStreamChunks, { type: 'video/webm;codecs=vp8' });
-      invokeSaveAsDialog(blob, 'webcam-recording');
+      return this.uploadService.upload(StreamType.user, this.peerId, this.roomId, blob);
+      // invokeSaveAsDialog(blob, 'webcam-recording');
     });
     this.screenRecorder.stopRecording(async () => {
       // const blob = await screenRecorder.getBlob();
       const blob = new Blob(this.screenStreamChunks, { type: 'video/webm;codecs=vp8' });
-      invokeSaveAsDialog(blob, 'screen-recording');
+      return this.uploadService.upload(StreamType.screen, this.peerId, this.roomId, blob);
+      // invokeSaveAsDialog(blob, 'screen-recording');
     });
   }
 

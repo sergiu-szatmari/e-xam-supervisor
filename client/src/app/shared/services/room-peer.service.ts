@@ -42,6 +42,8 @@ export class RoomPeerService extends PeerService {
       this.peerId = this.peer.id;
       this.roomId = roomId;
       this.username = username;
+      this.mediaService.peerId = this.peerId;
+      this.mediaService.roomId = this.roomId;
 
       this.connection = this.peer.connect(this.roomId);
       this.connection.on('open', this.onConnectionOpen);

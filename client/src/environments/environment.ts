@@ -4,8 +4,9 @@ export const environment = {
   server: {
     url: 'localhost',
     port: 8080,
-    path: '/signal'
+    path: '/signal',
+    uploadUrl: 'http://localhost:8080/upload'
   },
 
-  recording: false,
+  recording: true,
 };
