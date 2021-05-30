@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { MediaStreamsObject } from '../models/media';
+import { MediaStreamsObject, StreamOptions, StreamType, SupportedRecordRTCMimeTypes } from '../models/stream';
 import { BehaviorSubject } from 'rxjs';
-import { StreamOptions, StreamType } from '../models/stream';
 import RecordRTC from 'recordrtc';
 import { environment } from '../../../environments/environment';
 import { UploadService } from './upload.service';
@@ -54,21 +53,22 @@ export class MediaService {
       const isRecordingEnabled = environment.recording.enabled;
       if (isRecordingEnabled) {
         const { mimeType } = environment.recording;
+        if (!SupportedRecordRTCMimeTypes.includes(mimeType)) throw new Error('Invalid mimeType for RecordRTC object');
+
         await this.uploadService.init(this.peerId, this.roomId);
 
-        this.webcamRecorder = new RecordRTC(this.webcamStream, {
+        const recordRTCOptions: any = {
           type: 'video',
-          // @ts-ignore
           mimeType,
           timeSlice: 2000,
-          ondataavailable: (blob) =>
+        };
+        this.webcamRecorder = new RecordRTC(this.webcamStream, {
+          ...recordRTCOptions,
+          ondataavailable: async (blob) =>
             this.uploadService.upload(StreamType.user, blob)
         });
         this.screenRecorder = new RecordRTC(this.screenStream, {
-          type: 'video',
-          // @ts-ignore
-          mimeType,
-          timeSlice: 2000,
+          ...recordRTCOptions,
           ondataavailable: async (blob) =>
             this.uploadService.upload(StreamType.screen, blob)
         });
@@ -116,6 +116,8 @@ export class MediaService {
   }
 
   public closeStreams() {
+    if (environment.recording.enabled) this.stopRecording();
+
     [ this.webcamStream,
       this.screenStream,
       this.remoteWebcamStream,
@@ -131,9 +133,6 @@ export class MediaService {
     this.screenStream = null;
     this.remoteWebcamStream = null;
     this.remoteScreenStream = null;
-
-    const isRecordingEnabled = environment.recording;
-    if (isRecordingEnabled) this.stopRecording();
   }
 
   public requestDisconnect() {

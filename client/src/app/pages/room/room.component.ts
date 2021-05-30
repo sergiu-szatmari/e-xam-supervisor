@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NbToastrService } from '@nebular/theme';
 import 'webrtc-adapter';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -6,7 +6,7 @@ import { MediaService } from '../../shared/services/media.service';
 import { BehaviorSubject } from 'rxjs';
 import { ChatService } from '../../shared/services/chat.service';
 import { RoomPeerService } from '../../shared/services/room-peer.service';
-import { MessageType } from '../../shared/models/message';
+import { ChatMessage, MessageType } from '../../shared/models/message';
 import { StreamType } from '../../shared/models/stream';
 
 enum RoomState {
@@ -23,6 +23,9 @@ enum RoomState {
 })
 export class RoomComponent implements OnInit, OnDestroy {
 
+  @ViewChild('messagesBox')
+  messagesBox: ElementRef;
+
   chatMessage = '';
   attendeeName = '';
   roomId: string;
@@ -31,6 +34,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   public get roomState$() { return this.roomStateSubject.asObservable(); }
 
   // UI Utils
+  chatMessages: ChatMessage[] = [ ];
   MessageType = MessageType;
   RoomState = RoomState;
 
@@ -42,6 +46,13 @@ export class RoomComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    this.chatService.chatMessages$
+      .pipe(untilDestroyed(this))
+      .subscribe((chatMessages) => {
+        this.chatMessages = chatMessages;
+        this.scrollToBottom();
+      });
+
     this.peerService.connected$
       .pipe(untilDestroyed(this))
       .subscribe(async (connected: boolean) => {
@@ -111,15 +122,27 @@ export class RoomComponent implements OnInit, OnDestroy {
   }
 
   public onSendChatMessage() {
+    if (this.chatMessage === '') return;
+
     this.chatService.newMessage({
-      from: 'me',
-      username: this.attendeeName,
+      from: { peerId: this.peerService.peerId, username: this.attendeeName },
+      to: { peerId: this.roomId, username: 'Supervisor' },
       message: this.chatMessage,
       type: MessageType.chat,
       ts: new Date(),
     });
 
     this.peerService.sendChatMessage(this.chatMessage);
+    this.scrollToBottom();
     this.chatMessage = '';
+  }
+
+  public scrollToBottom() {
+    const scroll = () => {
+      const top = this.messagesBox.nativeElement.scrollHeight;
+      this.messagesBox.nativeElement.scroll({ top, behaviour: 'smooth' });
+    };
+
+    if (this.messagesBox) setTimeout(scroll, 1);
   }
 }

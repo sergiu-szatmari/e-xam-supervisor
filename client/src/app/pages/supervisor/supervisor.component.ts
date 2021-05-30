@@ -1,5 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Message, MessageType } from '../../shared/models/message';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChatMessage, MessageType } from '../../shared/models/message';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SupervisorPeerService } from '../../shared/services/supervisor-peer.service';
 import { MediaService } from '../../shared/services/media.service';
@@ -7,7 +7,7 @@ import { ChatService } from '../../shared/services/chat.service';
 import { PeerConnections } from '../../shared/models/peer-connections';
 import { NbToastrService } from '@nebular/theme';
 import { StreamType } from '../../shared/models/stream';
-import { Events } from '../../shared/models/events';
+import { Observable } from 'rxjs';
 
 enum RoomView {
   grid = 'grid',
@@ -22,7 +22,12 @@ enum RoomView {
 })
 export class SupervisorComponent implements OnInit, OnDestroy {
 
-  broadcastChatMessage = '';
+  @ViewChild('messagesBox')
+  messagesBox: ElementRef;
+
+  chatMessage = '';
+
+  chatMessages: ChatMessage[] = [ ];
 
   streams: { peerId: string, username: string; stream: MediaStream }[] = [];
 
@@ -33,6 +38,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   focusedRemotePeerUsername: string;
 
   // UI Utils
+  MessageType = MessageType
   RoomView = RoomView;
   roomView: RoomView = RoomView.grid;
   copiedToClipBoard = false;
@@ -45,6 +51,13 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    this.chatService.chatMessages$
+      .pipe(untilDestroyed(this))
+      .subscribe((chatMessages) => {
+        this.chatMessages = chatMessages;
+        this.scrollToBottom();
+      });
+
     this.peerService.connected$
       .pipe(untilDestroyed(this))
       .subscribe(async (connected) => {
@@ -114,17 +127,30 @@ export class SupervisorComponent implements OnInit, OnDestroy {
     setTimeout(() => this.copiedToClipBoard = false, 1200);
   }
 
-  public onBroadcastChatMessage() {
-    this.chatService.newMessage({
-      from: 'supervisor',
-      username: 'Supervisor',
-      message: this.broadcastChatMessage,
-      type: MessageType.broadcast,
-      ts: new Date()
-    });
+  public onSendChatMessage() {
+    if (this.chatMessage === '') return;
 
-    this.peerService.broadcastChatMessage(this.broadcastChatMessage);
-    this.broadcastChatMessage = '';
+    const message: ChatMessage = {
+      from: { peerId: this.peerService.peerId, username: 'Supervisor', },
+      message: this.chatMessage,
+      type: this.focusedRemotePeerId ? MessageType.chat : MessageType.broadcast,
+      ts: new Date()
+    };
+
+    if (this.focusedRemotePeerId) {
+      message.to = { peerId: this.focusedRemotePeerId, username: this.focusedRemotePeerUsername };
+    }
+
+    this.chatService.newMessage(message);
+
+    if (this.focusedRemotePeerId) {
+      this.peerService.sendChatMessage(this.focusedRemotePeerId, this.chatMessage);
+    } else {
+      this.peerService.broadcastChatMessage(this.chatMessage);
+    }
+
+    this.scrollToBottom();
+    this.chatMessage = '';
   }
 
   public onLeaveRoom() {
@@ -180,5 +206,14 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       this.userStream = null;
       this.screenStream = null;
     }, 500);
+  }
+
+  public scrollToBottom() {
+    const scroll = () => {
+      const top = this.messagesBox.nativeElement.scrollHeight;
+      this.messagesBox.nativeElement.scroll({ top, behaviour: 'smooth' });
+    };
+
+    if (this.messagesBox) setTimeout(scroll, 1);
   }
 }

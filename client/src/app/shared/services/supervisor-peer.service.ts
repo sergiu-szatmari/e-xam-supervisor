@@ -57,7 +57,8 @@ export class SupervisorPeerService extends PeerService {
     this.connectedSubject.next(true);
 
     this.chatService.newMessage({
-      from: 'system', username: 'System',
+      from: { peerId: 'system', username: 'System' },
+      to: { peerId: this.peerId, username: 'Supervisor' },
       message: 'You connected',
       type: MessageType.system,
       ts: new Date()
@@ -124,19 +125,20 @@ export class SupervisorPeerService extends PeerService {
   // Connection handlers
   public onConnectionClose = (remotePeerId: string) =>
     () => {
-    const username = this.connections[ remotePeerId ].username;
-    this.connections[ remotePeerId ].streams.forEach(({ stream }) => stream.getTracks().forEach(track => track.stop()));
-    this.connections[ remotePeerId ].calls.forEach(call => call.close());
-    this.connections[ remotePeerId ].dataConnection.close();
-    delete this.connections[ remotePeerId ];
+      const username = this.connections[ remotePeerId ].username;
+      this.connections[ remotePeerId ].streams.forEach(({ stream }) => stream.getTracks().forEach(track => track.stop()));
+      this.connections[ remotePeerId ].calls.forEach(call => call.close());
+      this.connections[ remotePeerId ].dataConnection.close();
+      delete this.connections[ remotePeerId ];
 
-    this.chatService.newMessage({
-      from: 'system', username: 'System',
-      message: `${ username } has disconnected`,
-      type: MessageType.system,
-      ts: new Date()
-    });
-    this.connectionsSubject.next(this.connections);
+      this.chatService.newMessage({
+        from: { peerId: 'system', username: 'System' },
+        to: { peerId: this.peerId, username: 'Supervisor' },
+        message: `${ username } has disconnected`,
+        type: MessageType.system,
+        ts: new Date()
+      });
+      this.connectionsSubject.next(this.connections);
     }
 
   public onConnectionData = (remotePeerId: string) =>
@@ -149,8 +151,14 @@ export class SupervisorPeerService extends PeerService {
           this.connections[ remotePeerId ].username = username;
 
           this.chatService.newMessage({
-            from: 'system',
-            username: 'System',
+            from: {
+              peerId: 'system',
+              username: 'System'
+            },
+            to: {
+              peerId: this.peerId,
+              username: 'Supervisor'
+            },
             message: `${ username } has connected`,
             type: MessageType.system,
             ts: new Date()
@@ -159,13 +167,21 @@ export class SupervisorPeerService extends PeerService {
         }
 
         case Events.chatMessage: {
-          const { from, username, message, ts } = payload as ChatMessage;
-          if (!this.connections[ from ]) {
-            console.log(`Message from unknown peer (${ from })`);
+          const { from, to, message, ts } = payload as ChatMessage;
+
+          // Bad receiver
+          if (to.peerId !== this.peerId) return;
+
+          // Bad sender
+          if (!this.connections[ from.peerId ]) {
+            console.log(`Message from unknown peer (${ from.peerId })`);
             return;
           }
 
-          this.chatService.newMessage({ from, username, message, ts, type: MessageType.chat });
+          this.chatService.newMessage({
+            from, to, message,
+            ts, type: MessageType.chat
+          });
           break;
         }
       }
@@ -174,18 +190,36 @@ export class SupervisorPeerService extends PeerService {
   public broadcastChatMessage(chatMessage: string) {
     // tslint:disable-next-line:forin
     for (const remotePeerId in this.connections) {
-      const dataConnection = this.connections[ remotePeerId ].dataConnection;
+      const { username, dataConnection } = this.connections[ remotePeerId ];
+
       dataConnection?.send(Message.create({
         type: Events.chatMessage,
         payload: {
-          from: this.peerId,
-          username: 'Supervisor',
+          from: { peerId: this.peerId, username: 'Supervisor' },
+          to: { peerId: remotePeerId, username },
           message: chatMessage,
           type: MessageType.broadcast,
           ts: new Date()
         }
       }));
     }
+  }
+
+  public sendChatMessage(peerId: string, chatMessage) {
+    const { username, dataConnection } = this.connections[ peerId ];
+
+    dataConnection?.send(
+      Message.create({
+        type: Events.chatMessage,
+        payload: {
+          from: { peerId: this.peerId, username: 'Supervisor' },
+          to: { peerId, username },
+          message: chatMessage,
+          type: MessageType.chat,
+          ts: new Date()
+        }
+      })
+    );
   }
 
   public requestScreenStream(peerId: string) {

@@ -7,12 +7,12 @@
     </div>
 
     <div class="chat">
-      <ul class="messages-box">
+      <ul class="messages-box" #messagesBox>
         <li class="message"
             *ngFor="let chatMessage of (chatService.chatMessages$ | async)"
-            [ngClass]="{ 'system': chatMessage.from === 'system', 'to': chatMessage.from === 'me', 'from': chatMessage.from !== 'me' }"
+            [ngClass]="{ system: chatMessage.from.peerId === 'system', to: chatMessage.from.peerId === peerService.peerId, from: chatMessage.from.peerId !== peerService.peerId }"
         >
-            <span class="message-header" *ngIf="chatMessage.from === 'system'; else notSystemMessage">
+            <span class="message-header" *ngIf="chatMessage.from.peerId === 'system'; else notSystemMessage">
               <i>{{ chatMessage.message }}</i>
               <br/>
               ({{ chatMessage.ts | date: 'HH:mm:ss' }})
@@ -20,7 +20,7 @@
 
           <ng-template #notSystemMessage>
               <span class="message-header">
-                [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{ chatMessage.from !== 'me' ? (chatMessage.username + (chatMessage.type === MessageType.broadcast ? ' (Broadcast)' : ' (Direct)')) : 'You' }}:</i>
+                [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{ chatMessage.from.peerId !== peerService.peerId ? (chatMessage.from.username + (chatMessage.type === MessageType.broadcast ? ' (Broadcast)' : ' (Direct)')) : 'You' }}:</i>
               </span>
             <span>{{ chatMessage.message }}</span>
           </ng-template>
@@ -31,6 +31,7 @@
                shape="semi-round"
                placeholder="Send message to supervisor"
                [(ngModel)]="chatMessage"
+               (keyup.enter)="onSendChatMessage()"
         >
         <button nbButton status="info"
                 (click)="onSendChatMessage()"

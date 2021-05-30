@@ -48,12 +48,13 @@
       </div>
 
       <div class="chat">
-        <ul class="messages-box">
+        <ul class="messages-box" #messagesBox>
+<!--              *ngFor="let chatMessage of (chatService.chatMessages$ | async)"-->
           <li class="message"
-              *ngFor="let chatMessage of (chatService.chatMessages$ | async)"
-              [ngClass]="{ 'system': chatMessage.from === 'system', 'to': chatMessage.from === 'supervisor', 'from': chatMessage.from !== 'supervisor' }"
+              *ngFor="let chatMessage of chatMessages"
+              [ngClass]="{ system: chatMessage.from.peerId === 'system', to: chatMessage.from.peerId === peerService.peerId, from: chatMessage.from.peerId !== peerService.peerId }"
           >
-            <span class="message-header" *ngIf="chatMessage.from === 'system'; else notSystemMessage">
+            <span class="message-header" *ngIf="chatMessage.from.peerId === 'system'; else notSystemMessage">
               <i>{{ chatMessage.message }}</i>
               <br/>
               ({{ chatMessage.ts | date: 'HH:mm:ss' }})
@@ -61,7 +62,15 @@
 
             <ng-template #notSystemMessage>
               <span class="message-header">
-                [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{ chatMessage.from !== 'supervisor' ? chatMessage.username : 'You (Broadcast)' }}:</i>
+                [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{
+                chatMessage.from.peerId !== peerService.peerId ?
+                  chatMessage.from.username :
+                  'You ' + (
+                    chatMessage.type === MessageType.broadcast ?
+                      '(Broadcast)' :
+                      '(Direct to ' + chatMessage.to.username + ')'
+                  )
+                }}:</i>
               </span>
               <span>{{ chatMessage.message }}</span>
             </ng-template>
@@ -70,12 +79,13 @@
         <div class="typing-box">
           <input type="text" nbInput
                  shape="semi-round"
-                 placeholder="Send message to all"
-                 [(ngModel)]="broadcastChatMessage"
+                 [placeholder]="focusedRemotePeerId ? 'Send message to ' + focusedRemotePeerUsername + ' (direct)' : 'Send message to all (broadcast)'"
+                 [(ngModel)]="chatMessage"
+                 (keyup.enter)="onSendChatMessage()"
           >
           <button nbButton status="info"
-                  (click)="onBroadcastChatMessage()"
-                  [disabled]="!(broadcastChatMessage?.length > 0)">
+                  (click)="onSendChatMessage()"
+                  [disabled]="!(chatMessage?.length > 0)">
             <nb-icon icon="paper-plane-outline"></nb-icon>
           </button>
         </div>

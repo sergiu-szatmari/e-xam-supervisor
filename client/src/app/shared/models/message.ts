@@ -7,8 +7,17 @@ export interface SetupPeerInformation {
 }
 
 export interface ChatMessage {
-  from: string; // Peer ID
-  username: string;
+  from: {
+    peerId: string;
+    username: string;
+  },
+  to?: {
+    peerId: string;
+    username: string;
+  }
+  // from: string; // Peer ID
+  // to: string; // Peer ID
+  // username: string;
   message: string;
   type: MessageType;
   ts: Date;

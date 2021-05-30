@@ -14,7 +14,7 @@ import { StreamType } from '../models/stream';
 export class RoomPeerService extends PeerService {
 
   protected peer: Peer;
-  protected peerId: string;
+  public peerId: string;
   protected connection: DataConnection;
 
   protected username: string;
@@ -87,7 +87,8 @@ export class RoomPeerService extends PeerService {
 
     // Adding the first info message in chat
     this.chatService.newMessage({
-      from: 'system', username: 'System',
+      from: { peerId: 'system', username: 'System' },
+      to: { peerId: this.peerId, username: this.username },
       message: 'You connected',
       type: MessageType.system,
       ts: new Date()
@@ -105,17 +106,25 @@ export class RoomPeerService extends PeerService {
     console.log(`Message received (${ type })`, payload);
 
     switch (type) {
-      case Events.chatMessage:
-        const { username, message, ts } = payload as ChatMessage;
+      case Events.chatMessage: {
+        const { from, message, ts, to } = payload as ChatMessage;
+
+        // Bad sender
+        if (from.peerId !== this.roomId) return;
+
+        // Bad receiver
+        if (to.peerId !== this.peerId) return;
+
         const chatMessageType = (payload as ChatMessage).type;
         this.chatService.newMessage({
-          username, message, ts,
-          from: 'supervisor',
+          from, to,
+          message, ts,
           type: chatMessageType
         });
         break;
+      }
 
-      case Events.streamToggle:
+      case Events.streamToggle: {
         const { from, stream: streamOptions, toggle } = payload as StreamToggleOptions;
 
         // Bad sender
@@ -124,6 +133,7 @@ export class RoomPeerService extends PeerService {
         if (streamOptions.user) this.mediaService.remoteWebcamStream.getTracks().forEach(track => track.enabled = toggle);
         if (streamOptions.screen) this.mediaService.remoteScreenStream.getTracks().forEach(track => track.enabled = toggle);
         break;
+      }
     }
   }
 
@@ -131,7 +141,8 @@ export class RoomPeerService extends PeerService {
     this.connection.send(Message.create({
       type: Events.chatMessage,
       payload: {
-        from: this.peerId,
+        from: { peerId: this.peerId, username: this.username },
+        to: { peerId: this.roomId, username: 'Supervisor' },
         username: this.username,
         message: chatMessage,
         type: MessageType.chat,
