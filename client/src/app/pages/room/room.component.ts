@@ -60,7 +60,7 @@ export class RoomComponent implements OnInit, OnDestroy {
         if (connected) {
           this.roomStateSubject.next(RoomState.call);
 
-          const { user, screen } = await this.mediaService.getStreamClone({ user: true, screen: true });
+          const { user, screen } = await this.mediaService.getStreams();
 
           // Initiate both webcam & screenShare media connections
           this.peerService.initiateCall(user, StreamType.user);

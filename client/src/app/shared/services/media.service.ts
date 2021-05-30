@@ -83,13 +83,7 @@ export class MediaService {
     );
   }
 
-  public async getStreamRef(): Promise<MediaStreamsObject> {
-    if (!this.webcamStream || !this.screenStream) await this.loadStreams();
-
-    return { user: this.webcamStream, screen: this.screenStream };
-  }
-
-  public async getStreamClone(preferences: StreamOptions): Promise<MediaStreamsObject> {
+  public async getStreams(): Promise<MediaStreamsObject> {
     if (!this.webcamStream || !this.screenStream) await this.loadStreams();
 
     if (!this.remoteWebcamStream || !this.remoteScreenStream) {
@@ -97,11 +91,10 @@ export class MediaService {
       this.remoteScreenStream = this.screenStream.clone();
     }
 
-    const streams: any = { };
-    if (preferences.user) streams.user = this.remoteWebcamStream;
-    if (preferences.screen) streams.screen = this.remoteScreenStream;
-
-    return streams;
+    return {
+      user: this.remoteWebcamStream,
+      screen: this.remoteScreenStream
+    };
   }
 
   public closeStreams() {
