@@ -8,5 +8,8 @@ export const environment = {
     uploadUrl: 'http://localhost:8080/upload'
   },
 
-  recording: true,
+  recording: {
+    enabled: true,
+    mimeType: 'video/webm;codecs=vp8'
+  }
 };

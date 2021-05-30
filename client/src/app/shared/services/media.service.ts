@@ -51,21 +51,23 @@ export class MediaService {
       this.webcamStream = userStream;
       this.screenStream = screenStream;
 
-      const isRecordingEnabled = environment.recording;
+      const isRecordingEnabled = environment.recording.enabled;
       if (isRecordingEnabled) {
-
+        const { mimeType } = environment.recording;
         await this.uploadService.init(this.peerId, this.roomId);
 
         this.webcamRecorder = new RecordRTC(this.webcamStream, {
           type: 'video',
-          mimeType: 'video/webm;codecs=vp8',
+          // @ts-ignore
+          mimeType,
           timeSlice: 2000,
           ondataavailable: (blob) =>
             this.uploadService.upload(StreamType.user, blob)
         });
         this.screenRecorder = new RecordRTC(this.screenStream, {
           type: 'video',
-          mimeType: 'video/webm;codecs=vp8',
+          // @ts-ignore
+          mimeType,
           timeSlice: 2000,
           ondataavailable: async (blob) =>
             this.uploadService.upload(StreamType.screen, blob)

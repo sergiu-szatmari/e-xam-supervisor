@@ -7,5 +7,5 @@ export interface UploadRequestBody {
   roomId: string;
   peerId: string;
   recordingType: RecordingType;
-  mimetype: string;
+  mimeType: string;
 }

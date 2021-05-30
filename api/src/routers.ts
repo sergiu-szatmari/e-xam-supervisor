@@ -13,12 +13,12 @@ uploadRouter.post('/', async (req: Request<{}, {}, UploadRequestBody, {}>,
                         res: Response<AWS.S3.PresignedPost>,
                         next: NextFunction) => {
   try {
-    const { peerId, recordingType, mimetype, roomId } = req.body;
+    const { peerId, recordingType, mimeType, roomId } = req.body;
     
     if (!peerId) return next(new Error('Invalid parameter (peerId)'));
     if (!roomId) return next(new Error('Invalid parameter (roomId)'));
     if (!recordingType || !Object.values(RecordingType).includes(recordingType)) return next(new Error('Invalid parameter (roomId)'));
-    if (!mimetype) return next(new Error('Invalid parameter (mimetype)'));
+    if (!mimeType) return next(new Error('Invalid parameter (mimeType)'));
     
     const s3 = new AWS.S3();
     const key = `meetings/${ roomId }/${ peerId }/${ recordingType }`;
@@ -27,7 +27,7 @@ uploadRouter.post('/', async (req: Request<{}, {}, UploadRequestBody, {}>,
       Expires: 180, // 3h
       Bucket,
       Fields: {
-        'Content-Type': mimetype,
+        'Content-Type': mimeType,
         key,
         acl: 'private'
       },

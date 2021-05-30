@@ -14,13 +14,16 @@ export class UploadService {
 
   public async init(peerId: string, roomId: string) {
     const { uploadUrl } = environment.server;
+    let { mimeType } = environment.recording;
+
+    if (mimeType.includes(';')) [ mimeType ] = mimeType.split(';');
 
     await Promise.all(
       Object.keys(StreamType).map(async (recordingType) => {
         const requestObj = {
           peerId, roomId,
           recordingType,
-          mimetype: 'video/webm'
+          mimeType
         };
 
         this.uploadData[ recordingType ] = await this.http
