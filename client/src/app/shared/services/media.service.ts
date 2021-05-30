@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { MediaStreamsObject, StreamOptions, StreamType, SupportedRecordRTCMimeTypes } from '../models/stream';
-import { BehaviorSubject } from 'rxjs';
 import RecordRTC from 'recordrtc';
 import { environment } from '../../../environments/environment';
 import { UploadService } from './upload.service';
+import { SharedEventsService } from './shared-events.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,27 +13,16 @@ export class MediaService {
   public webcamStream: MediaStream;
   public screenStream: MediaStream;
 
-  private streamingSubject = new BehaviorSubject(false);
-  public get streaming$() { return this.streamingSubject.asObservable(); }
-  public set streaming(toggleStreamingState: boolean) { this.streamingSubject.next(toggleStreamingState); }
-
-  private focusedViewSubject = new BehaviorSubject(false);
-  public get focusedView$() { return this.focusedViewSubject.asObservable(); }
-  public set focusedView(toggleStreamingState: boolean) { this.focusedViewSubject.next(toggleStreamingState); }
-
-  private backToGridViewRequestSubject = new BehaviorSubject(false);
-  public get backToGridViewRequest$() { return this.backToGridViewRequestSubject.asObservable(); }
-
-  private disconnectRequestSubject = new BehaviorSubject(false);
-  public get disconnectRequest$() { return this.disconnectRequestSubject.asObservable(); }
-
   public remoteWebcamStream: MediaStream;
   public remoteScreenStream: MediaStream;
 
   private webcamRecorder: RecordRTC;
   private screenRecorder: RecordRTC;
 
-  constructor(protected uploadService: UploadService) { }
+  constructor(
+    protected uploadService: UploadService,
+    protected sharedEvents: SharedEventsService,
+  ) { }
 
   public peerId: string;
   public roomId: string;
@@ -77,7 +66,7 @@ export class MediaService {
         this.screenRecorder.startRecording();
       }
 
-      this.streamingSubject.next(true);
+      this.sharedEvents.streaming = true;
     } catch (err) {
       console.error(err);
       // TODO: Proper error handling
@@ -126,20 +115,11 @@ export class MediaService {
       stream?.getTracks().forEach(track => track.stop());
     });
 
-    this.streamingSubject.next(false);
-    this.streamingSubject.complete();
+    this.sharedEvents.streaming = false;
 
     this.webcamStream = null;
     this.screenStream = null;
     this.remoteWebcamStream = null;
     this.remoteScreenStream = null;
-  }
-
-  public requestDisconnect() {
-    this.disconnectRequestSubject.next(true);
-  }
-
-  public requestBackToGridView() {
-    this.backToGridViewRequestSubject.next(true);
   }
 }

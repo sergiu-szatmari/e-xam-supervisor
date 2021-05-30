@@ -8,6 +8,7 @@ import { PeerConnections } from '../../shared/models/peer-connections';
 import { NbToastrService } from '@nebular/theme';
 import { StreamType } from '../../shared/models/stream';
 import { Observable } from 'rxjs';
+import { SharedEventsService } from '../../shared/services/shared-events.service';
 
 enum RoomView {
   grid = 'grid',
@@ -46,6 +47,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   constructor(
     protected mediaService: MediaService,
     protected toastr: NbToastrService,
+    protected sharedEvents: SharedEventsService,
     public chatService: ChatService,
     public peerService: SupervisorPeerService,
   ) { }
@@ -64,14 +66,14 @@ export class SupervisorComponent implements OnInit, OnDestroy {
         if (!connected) this.onLeaveRoom();
       })
 
-    this.mediaService
+    this.sharedEvents
       .disconnectRequest$
       .pipe(untilDestroyed(this))
       .subscribe(disconnect => {
         if (disconnect) this.onLeaveRoom();
       });
 
-    this.mediaService
+    this.sharedEvents
       .backToGridViewRequest$
       .pipe(untilDestroyed(this))
       .subscribe(backToGrid => {
@@ -107,7 +109,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
 
   public onCreateRoom() {
     this.peerService.connect();
-    this.mediaService.streaming = true;
+    this.sharedEvents.streaming = true;
   }
 
   public onCopyToClipBoard() {
@@ -156,7 +158,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   public onLeaveRoom() {
     try {
       this.peerService.disconnect();
-      this.mediaService.streaming = false;
+      this.sharedEvents.streaming = false;
     } catch (err) {
       this.toastr.danger(err.message);
     }
@@ -186,7 +188,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
     this.focusedRemotePeerId = remotePeerId;
     this.focusedRemotePeerUsername = this.peerService.connections[ remotePeerId ].username;
     this.roomView = RoomView.focused;
-    this.mediaService.focusedView = true;
+    this.sharedEvents.focusedView = true;
   }
 
   public onBackToGrid() {
@@ -202,7 +204,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       this.focusedRemotePeerId = null;
       this.focusedRemotePeerUsername = '';
       this.roomView = RoomView.grid;
-      this.mediaService.focusedView = false;
+      this.sharedEvents.focusedView = false;
       this.userStream = null;
       this.screenStream = null;
     }, 500);

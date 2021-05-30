@@ -1,9 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, } from '@angular/core';
 import { Router } from '@angular/router';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { RoomPeerService } from '../../services/room-peer.service';
-import { PeerService } from '../../services/peer.service';
-import { MediaService } from '../../services/media.service';
+import { UntilDestroy } from '@ngneat/until-destroy';
+import { SharedEventsService } from '../../services/shared-events.service';
 
 export interface MenuItem {
   title: string;
@@ -49,7 +47,7 @@ export class SidenavComponent implements OnInit {
 
   constructor(
     private router: Router,
-    public mediaService: MediaService
+    public sharedEvents: SharedEventsService,
   ) { }
 
   ngOnInit() {

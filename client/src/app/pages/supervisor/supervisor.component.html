@@ -49,7 +49,6 @@
 
       <div class="chat">
         <ul class="messages-box" #messagesBox>
-<!--              *ngFor="let chatMessage of (chatService.chatMessages$ | async)"-->
           <li class="message"
               *ngFor="let chatMessage of chatMessages"
               [ngClass]="{ system: chatMessage.from.peerId === 'system', to: chatMessage.from.peerId === peerService.peerId, from: chatMessage.from.peerId !== peerService.peerId }"

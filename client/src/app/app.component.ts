@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
-import adapter from 'webrtc-adapter';
+import 'webrtc-adapter';
 
 @Component({
   selector: 'app-root',
@@ -13,8 +13,7 @@ export class AppComponent {
 
   condensed: boolean;
 
-  constructor() {
-  }
+  constructor() { }
 
   async toggleSidenav() {
     this.condensed = !this.condensed;

@@ -1,6 +1,5 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NbToastrService } from '@nebular/theme';
-import 'webrtc-adapter';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { MediaService } from '../../shared/services/media.service';
 import { BehaviorSubject } from 'rxjs';
@@ -8,6 +7,7 @@ import { ChatService } from '../../shared/services/chat.service';
 import { RoomPeerService } from '../../shared/services/room-peer.service';
 import { ChatMessage, MessageType } from '../../shared/models/message';
 import { StreamType } from '../../shared/models/stream';
+import { SharedEventsService } from '../../shared/services/shared-events.service';
 
 enum RoomState {
   idle = 'idle',
@@ -40,6 +40,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   constructor(
     protected toastr: NbToastrService,
+    protected sharedEvents: SharedEventsService,
     public peerService: RoomPeerService,
     public mediaService: MediaService,
     public chatService: ChatService,
@@ -71,7 +72,7 @@ export class RoomComponent implements OnInit, OnDestroy {
         }
       });
 
-    this.mediaService
+    this.sharedEvents
       .disconnectRequest$
       .pipe(untilDestroyed(this))
       .subscribe(disconnect => {

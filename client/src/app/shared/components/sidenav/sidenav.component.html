@@ -4,18 +4,18 @@
   <app-link-view *ngFor="let item of menuItems"
                  [item]="item"
                  class="nav-link"
-                 [class.hidden]="(mediaService.streaming$ | async)"
+                 [class.hidden]="(sharedEvents.streaming$ | async)"
   ></app-link-view>
   <app-link-view id="back-to-grid-view"
-                 [class.hidden]="!(mediaService.focusedView$ | async)"
+                 [class.hidden]="!(sharedEvents.focusedView$ | async)"
                  class="nav-link"
-                 (click)="mediaService.requestBackToGridView()"
+                 (click)="sharedEvents.requestBackToGridView()"
                  [item]="{ title: 'Back to Grid', evaIcon: 'grid-outline', link: '' }"
   ></app-link-view>
   <app-link-view id="leave-room-button"
-                 [class.hidden]="!(mediaService.streaming$ | async)"
+                 [class.hidden]="!(sharedEvents.streaming$ | async)"
                  class="nav-link"
-                 (click)="mediaService.requestDisconnect()"
+                 (click)="sharedEvents.requestDisconnect()"
                  [item]="{ title: 'Leave Room', evaIcon: 'log-out-outline', link: '' }"
   ></app-link-view>
 </nav>

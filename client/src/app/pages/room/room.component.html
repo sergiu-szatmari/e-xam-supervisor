@@ -9,8 +9,10 @@
     <div class="chat">
       <ul class="messages-box" #messagesBox>
         <li class="message"
-            *ngFor="let chatMessage of (chatService.chatMessages$ | async)"
-            [ngClass]="{ system: chatMessage.from.peerId === 'system', to: chatMessage.from.peerId === peerService.peerId, from: chatMessage.from.peerId !== peerService.peerId }"
+            *ngFor="let chatMessage of chatMessages"
+            [class.system]="chatMessage.from.peerId === 'system'"
+            [class.to]="chatMessage.from.peerId === peerService.peerId"
+            [class.from]="chatMessage.from.peerId !== peerService.peerId"
         >
             <span class="message-header" *ngIf="chatMessage.from.peerId === 'system'; else notSystemMessage">
               <i>{{ chatMessage.message }}</i>
@@ -20,7 +22,15 @@
 
           <ng-template #notSystemMessage>
               <span class="message-header">
-                [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{ chatMessage.from.peerId !== peerService.peerId ? (chatMessage.from.username + (chatMessage.type === MessageType.broadcast ? ' (Broadcast)' : ' (Direct)')) : 'You' }}:</i>
+                [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{
+                  chatMessage.from.peerId !== peerService.peerId ?
+                    (chatMessage.from.username +
+                      (chatMessage.type === MessageType.broadcast ?
+                        ' (Broadcast)' :
+                        ' (Direct)'
+                    )) :
+                    'You'
+                }}:</i>
               </span>
             <span>{{ chatMessage.message }}</span>
           </ng-template>
@@ -78,9 +88,9 @@
 <!--    ></app-video-container>-->
 
     <video autoplay muted [srcObject]="mediaService.webcamStream"></video>
-    <video autoplay muted [srcObject]="mediaService.remoteWebcamStream"></video>
+<!--    <video autoplay muted [srcObject]="mediaService.remoteWebcamStream"></video>-->
     <video autoplay muted [srcObject]="mediaService.screenStream"></video>
-    <video autoplay muted [srcObject]="mediaService.remoteScreenStream"></video>
+<!--    <video autoplay muted [srcObject]="mediaService.remoteScreenStream"></video>-->
   </div>
 
   <div class="ended-call-state" *ngIf="(roomState$ | async) === RoomState.endedCall">
