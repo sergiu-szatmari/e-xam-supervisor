@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { PeerService } from './peer.service';
 import Peer, { DataConnection, MediaConnection } from 'peerjs';
 import { ChatService } from './chat.service';
 import { environment } from '../../../environments/environment';
@@ -8,11 +7,12 @@ import { Events } from '../models/events';
 import { BehaviorSubject } from 'rxjs';
 import { PeerConnections } from '../models/peer-connections';
 import { StreamOptions, StreamType } from '../models/stream';
+import { SharedEventsService } from './shared-events.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class SupervisorPeerService extends PeerService {
+export class SupervisorPeerService {
 
   protected peer: Peer;
   public peerId: string;
@@ -21,9 +21,10 @@ export class SupervisorPeerService extends PeerService {
   private connectionsSubject = new BehaviorSubject(this.connections);
   public get connections$() { return this.connectionsSubject.asObservable(); }
 
-  constructor(protected chatService: ChatService) {
-    super();
-  }
+  constructor(
+    protected chatService: ChatService,
+    protected sharedEvents: SharedEventsService
+  ) { }
 
   public connect() {
     const { url, path, port } = environment.server;
@@ -47,14 +48,14 @@ export class SupervisorPeerService extends PeerService {
     this.peer.destroy();
     this.peer = null;
     this.peerId = null;
-    this.connectedSubject.next(false);
+    this.sharedEvents.connected = false;
     return true;
   }
 
   public onPeerOpen = () => {
     this.peerId = this.peer.id;
 
-    this.connectedSubject.next(true);
+    this.sharedEvents.connected = true;
 
     this.chatService.newMessage({
       from: { peerId: 'system', username: 'System' },

@@ -7,7 +7,6 @@ export interface MenuItem {
   title: string;
   link?: string;
   evaIcon?: string;
-  materialIcon?: string;
   submenu?: { title: string; link: string }[];
   expanded?: boolean;
 }

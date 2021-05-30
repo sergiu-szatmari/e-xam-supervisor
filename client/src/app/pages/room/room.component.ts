@@ -37,6 +37,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   chatMessages: ChatMessage[] = [ ];
   MessageType = MessageType;
   RoomState = RoomState;
+  isLoadingBtn = false;
 
   constructor(
     protected toastr: NbToastrService,
@@ -54,21 +55,23 @@ export class RoomComponent implements OnInit, OnDestroy {
         this.scrollToBottom();
       });
 
-    this.peerService.connected$
+    this.sharedEvents.connected$
       .pipe(untilDestroyed(this))
       .subscribe(async (connected: boolean) => {
         if (connected) {
-          this.roomStateSubject.next(RoomState.call);
-
-          const { user, screen } = await this.mediaService.getStreams();
+          await this.mediaService.loadStreams();
+          // const { user, screen } = await this.mediaService.getStreams();
 
           // Initiate both webcam & screenShare media connections
-          this.peerService.initiateCall(user, StreamType.user);
-          this.peerService.initiateCall(screen, StreamType.screen);
+          this.peerService.initiateCall(this.mediaService.remoteWebcamStream, StreamType.user);
+          this.peerService.initiateCall(this.mediaService.remoteScreenStream, StreamType.screen);
 
           // "Mute" the video & audio tracks
           // for the screenSharing stream
           this.mediaService.remoteScreenStream.getTracks().forEach(track => track.enabled = false);
+
+          this.isLoadingBtn = false;
+          this.roomStateSubject.next(RoomState.call);
         }
       });
 
@@ -107,6 +110,7 @@ export class RoomComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isLoadingBtn = true;
     this.peerService.connect(this.roomId, this.attendeeName);
   }
 

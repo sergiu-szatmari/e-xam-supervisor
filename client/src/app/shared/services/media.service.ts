@@ -27,7 +27,7 @@ export class MediaService {
   public peerId: string;
   public roomId: string;
 
-  private async loadStreams() {
+  public async loadStreams() {
     try {
       const [ userStream, screenStream ] = await Promise.all([
         navigator.mediaDevices.getUserMedia({ audio: true, video: true }),
@@ -53,18 +53,19 @@ export class MediaService {
         };
         this.webcamRecorder = new RecordRTC(this.webcamStream, {
           ...recordRTCOptions,
-          ondataavailable: async (blob) =>
-            this.uploadService.upload(StreamType.user, blob)
+          ondataavailable: async (blob) => this.uploadService.upload(StreamType.user, blob)
         });
         this.screenRecorder = new RecordRTC(this.screenStream, {
           ...recordRTCOptions,
-          ondataavailable: async (blob) =>
-            this.uploadService.upload(StreamType.screen, blob)
+          ondataavailable: async (blob) => this.uploadService.upload(StreamType.screen, blob)
         });
 
         this.webcamRecorder.startRecording();
         this.screenRecorder.startRecording();
       }
+
+      this.remoteWebcamStream = this.webcamStream.clone();
+      this.remoteScreenStream = this.screenStream.clone();
 
       this.sharedEvents.streaming = true;
     } catch (err) {
@@ -73,32 +74,12 @@ export class MediaService {
     }
   }
 
-  public stopRecording() {
-    this.webcamRecorder.stopRecording(async () =>
-      this.uploadService.upload(StreamType.user,this.webcamRecorder.getBlob())
-    );
-
-    this.screenRecorder.stopRecording(async () =>
-      this.uploadService.upload(StreamType.screen,this.screenRecorder.getBlob())
-    );
-  }
-
-  public async getStreams(): Promise<MediaStreamsObject> {
-    if (!this.webcamStream || !this.screenStream) await this.loadStreams();
-
-    if (!this.remoteWebcamStream || !this.remoteScreenStream) {
-      this.remoteWebcamStream = this.webcamStream.clone();
-      this.remoteScreenStream = this.screenStream.clone();
-    }
-
-    return {
-      user: this.remoteWebcamStream,
-      screen: this.remoteScreenStream
-    };
-  }
-
   public closeStreams() {
-    if (environment.recording.enabled) this.stopRecording();
+    if (environment.recording.enabled) {
+      // Stopping the recordings
+      this.webcamRecorder.stopRecording(async () => this.uploadService.upload(StreamType.user,this.webcamRecorder.getBlob()));
+      this.screenRecorder.stopRecording(async () => this.uploadService.upload(StreamType.screen,this.screenRecorder.getBlob()));
+    }
 
     [ this.webcamStream,
       this.screenStream,

@@ -2,12 +2,10 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { ChatMessage, MessageType } from '../../shared/models/message';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SupervisorPeerService } from '../../shared/services/supervisor-peer.service';
-import { MediaService } from '../../shared/services/media.service';
 import { ChatService } from '../../shared/services/chat.service';
 import { PeerConnections } from '../../shared/models/peer-connections';
 import { NbToastrService } from '@nebular/theme';
 import { StreamType } from '../../shared/models/stream';
-import { Observable } from 'rxjs';
 import { SharedEventsService } from '../../shared/services/shared-events.service';
 
 enum RoomView {
@@ -45,22 +43,23 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   copiedToClipBoard = false;
 
   constructor(
-    protected mediaService: MediaService,
     protected toastr: NbToastrService,
-    protected sharedEvents: SharedEventsService,
+    public sharedEvents: SharedEventsService,
     public chatService: ChatService,
     public peerService: SupervisorPeerService,
   ) { }
 
   ngOnInit(): void {
-    this.chatService.chatMessages$
+    this.chatService
+      .chatMessages$
       .pipe(untilDestroyed(this))
       .subscribe((chatMessages) => {
         this.chatMessages = chatMessages;
         this.scrollToBottom();
       });
 
-    this.peerService.connected$
+    this.sharedEvents
+      .connected$
       .pipe(untilDestroyed(this))
       .subscribe(async (connected) => {
         if (!connected) this.onLeaveRoom();

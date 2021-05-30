@@ -20,6 +20,10 @@ export class SharedEventsService {
   private disconnectRequestSubject = new BehaviorSubject(false);
   public get disconnectRequest$() { return this.disconnectRequestSubject.asObservable(); }
 
+  protected connectedSubject = new BehaviorSubject(false);
+  public get connected$() { return this.connectedSubject.asObservable(); }
+  public set connected(connected: boolean) { this.connectedSubject.next(connected); }
+
   constructor() { }
 
   public requestDisconnect() {

@@ -1,6 +1,6 @@
-<section class="room" [class.include-chat]="peerService.connected$ | async">
+<section class="room" [class.include-chat]="(roomState$ | async) === RoomState.call">
 
-  <div class="chat-container" *ngIf="peerService.connected$ | async">
+  <div class="chat-container" *ngIf="(roomState$ | async) === RoomState.call">
     <div class="room-id-panel">
       <span class="label">Room ID</span>
       <input type="text" nbInput value="{{ roomId }}" disabled>
@@ -63,33 +63,19 @@
     <div class="form-group">
       <input type="text" nbInput placeholder="Room ID" [(ngModel)]="roomId">
     </div>
-    <button nbButton status="info" (click)="onJoinRoom()">Join</button>
+    <button nbButton status="info"
+            [outline]="isLoadingBtn"
+            [disabled]="isLoadingBtn"
+            [nbSpinner]="isLoadingBtn"
+            nbSpinnerStatus="info"
+            (click)="onJoinRoom()"
+    >{{ isLoadingBtn ? '' : 'Join' }}</button>
   </div>
 
   <div class="call-state" [class.hidden]="(roomState$ | async) !== RoomState.call">
-<!--    <app-video-container-->
-<!--      [stream]="mediaService.webcamStream"-->
-<!--      [label]="attendeeName"-->
-<!--    ></app-video-container>-->
-
-<!--    <app-video-container-->
-<!--      [stream]="mediaService.remoteWebcamStream"-->
-<!--      label="{{ attendeeName }} (Stream)"-->
-<!--    ></app-video-container>-->
-
-<!--    <app-video-container-->
-<!--      [stream]="mediaService.screenStream"-->
-<!--      label="Screen"-->
-<!--    ></app-video-container>-->
-
-<!--    <app-video-container-->
-<!--      [stream]="mediaService.remoteScreenStream"-->
-<!--      label="Screen (Stream)"-->
-<!--    ></app-video-container>-->
-
     <video autoplay muted [srcObject]="mediaService.webcamStream"></video>
-<!--    <video autoplay muted [srcObject]="mediaService.remoteWebcamStream"></video>-->
     <video autoplay muted [srcObject]="mediaService.screenStream"></video>
+<!--    <video autoplay muted [srcObject]="mediaService.remoteWebcamStream"></video>-->
 <!--    <video autoplay muted [srcObject]="mediaService.remoteScreenStream"></video>-->
   </div>
 

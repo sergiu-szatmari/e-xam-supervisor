@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { PeerService } from './peer.service';
 import Peer, { DataConnection, MediaConnection } from 'peerjs';
 import { environment } from '../../../environments/environment';
 import { ChatService } from './chat.service';
@@ -7,11 +6,12 @@ import { ChatMessage, Message, MessageType, StreamToggleOptions } from '../model
 import { Events } from '../models/events';
 import { MediaService } from './media.service';
 import { StreamType } from '../models/stream';
+import { SharedEventsService } from './shared-events.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class RoomPeerService extends PeerService {
+export class RoomPeerService {
 
   protected peer: Peer;
   public peerId: string;
@@ -24,8 +24,9 @@ export class RoomPeerService extends PeerService {
 
   constructor(
     protected chatService: ChatService,
-    protected mediaService: MediaService
-  ) { super(); }
+    protected mediaService: MediaService,
+    protected sharedEvents: SharedEventsService,
+  ) { }
 
   public connect(roomId: string, username: string) {
     const { url, path, port } = environment.server;
@@ -83,7 +84,7 @@ export class RoomPeerService extends PeerService {
   }
 
   public onConnectionOpen = () => {
-    this.connectedSubject.next(true);
+    this.sharedEvents.connected = true;
 
     // Adding the first info message in chat
     this.chatService.newMessage({

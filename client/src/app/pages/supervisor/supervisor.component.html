@@ -1,7 +1,7 @@
-<div class="container" [class.include-chat]="peerService.connected$ | async">
-  <div class="room-container" [class.idle]="!(peerService.connected$ | async)">
+<div class="container" [class.include-chat]="sharedEvents.connected$ | async">
+  <div class="room-container" [class.idle]="!(sharedEvents.connected$ | async)">
     <ng-container *ngIf="roomView === RoomView.grid; else focusedViewTemplate">
-      <button *ngIf="!(peerService.connected$ | async)"
+      <button *ngIf="!(sharedEvents.connected$ | async)"
               class="new-room-btn"
               nbButton
               status="info" (click)="onCreateRoom()">
@@ -35,7 +35,7 @@
       </div>
     </ng-template>
 
-    <div class="chat-container" *ngIf="peerService.connected$ | async">
+    <div class="chat-container" *ngIf="sharedEvents.connected$ | async">
       <div class="room-id-panel">
         <span class="label">Room ID</span>
 
