@@ -48,7 +48,6 @@
             ],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
-              "./node_modules/@ng-select/ng-select/themes/default.theme.css",
               "src/styles/material-theme.scss",
               "src/styles/nebular-theme.scss",
               "src/styles/theme-overrides.scss",
