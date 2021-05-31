@@ -1,7 +1,7 @@
 <nb-layout>
   <nb-layout-column>
     <mat-sidenav-container autosize>
-      <mat-sidenav #menuSidenav
+      <mat-sidenav *ngIf="!(sharedEvents.connected$ | async)" #menuSidenav
                    [fixedInViewport]="true"
                    mode="side"
                    opened>

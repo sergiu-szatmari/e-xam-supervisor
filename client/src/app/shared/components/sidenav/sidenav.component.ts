@@ -1,13 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnInit, } from '@angular/core';
-import { Router } from '@angular/router';
 import { UntilDestroy } from '@ngneat/until-destroy';
-import { SharedEventsService } from '../../services/shared-events.service';
 
 export interface MenuItem {
   title: string;
   link?: string;
   evaIcon?: string;
-  submenu?: { title: string; link: string }[];
   expanded?: boolean;
 }
 
@@ -19,8 +16,6 @@ export interface MenuItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidenavComponent implements OnInit {
-  activeLink: string;
-
   menuItems: MenuItem[] = [
     {
       title: 'Home',
@@ -44,19 +39,8 @@ export class SidenavComponent implements OnInit {
     }
   ];
 
-  constructor(
-    private router: Router,
-    public sharedEvents: SharedEventsService,
-  ) { }
+  constructor() { }
 
   ngOnInit() {
-    this.activeLink = this.router.url.split('?')[ 0 ];
-    this.menuItems
-      .filter((item) => item.submenu != null)
-      .forEach((item) => {
-        item.expanded = item.submenu
-          .map((i) => i.link)
-          .includes(this.activeLink);
-      });
   }
 }

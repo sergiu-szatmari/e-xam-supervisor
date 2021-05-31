@@ -46,6 +46,8 @@
       button {
         margin: .5rem 0;
         width: 100%;
+
+        &.btn-disabled { color: #50a5f1; background-color: #F2F2F2; }
       }
     }
 
@@ -137,10 +139,11 @@
 
     .attendees-previews {
       display: grid;
-      grid-template-columns: auto auto auto auto auto;
+      gap: 4px;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
 
       .attendee-preview {
-        padding: 0 20px 20px;
+        padding: 0;
 
         app-video-container:hover {
           cursor: pointer;

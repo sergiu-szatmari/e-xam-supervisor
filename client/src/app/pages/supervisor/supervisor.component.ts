@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ChatMessage, MessageType } from '../../shared/models/message';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SupervisorPeerService } from '../../shared/services/supervisor-peer.service';
@@ -40,7 +40,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   MessageType = MessageType
   RoomView = RoomView;
   roomView: RoomView = RoomView.grid;
-  copiedToClipBoard = false;
+  copiedToClipBoard = null;
 
   constructor(
     protected toastr: NbToastrService,
@@ -65,12 +65,12 @@ export class SupervisorComponent implements OnInit, OnDestroy {
         if (!connected) this.onLeaveRoom();
       })
 
-    this.sharedEvents
-      .disconnectRequest$
-      .pipe(untilDestroyed(this))
-      .subscribe(disconnect => {
-        if (disconnect) this.onLeaveRoom();
-      });
+    // this.sharedEvents
+    //   .disconnectRequest$
+    //   .pipe(untilDestroyed(this))
+    //   .subscribe(disconnect => {
+    //     if (disconnect) this.onLeaveRoom();
+    //   });
 
     this.sharedEvents
       .backToGridViewRequest$
@@ -125,7 +125,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
     document.body.removeChild(text);
 
     this.copiedToClipBoard = true;
-    setTimeout(() => this.copiedToClipBoard = false, 1200);
+    setTimeout(() => this.copiedToClipBoard = null, 2000);
   }
 
   public onSendChatMessage() {

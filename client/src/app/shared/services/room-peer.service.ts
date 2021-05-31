@@ -61,6 +61,7 @@ export class RoomPeerService {
     this.peer.destroy();
     this.peer = null;
     this.peerId = null;
+    this.sharedEvents.connected = false;
     return true;
   }
 

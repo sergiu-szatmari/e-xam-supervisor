@@ -83,3 +83,12 @@
     <span>See you next time, {{ attendeeName }}! 👋</span>
   </div>
 </section>
+
+<div class="fab-bar" *ngIf="(roomState$ | async) === RoomState.call">
+  <button class="leave-room-btn"
+          mat-fab (click)="onLeaveRoom()"
+          matTooltip="Leave room" matTooltipPosition="above"
+  >
+    <nb-icon icon="log-out-outline" class="rotated"></nb-icon>
+  </button>
+</div>

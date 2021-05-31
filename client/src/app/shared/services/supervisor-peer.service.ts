@@ -117,7 +117,19 @@ export class SupervisorPeerService {
     call.answer();
 
     if (this.connections[ remotePeerId ]) {
-      this.connections[ remotePeerId ].calls.push(call);
+      const { calls, username } = this.connections[ remotePeerId ];
+
+      if (calls.push(call) === 1) {
+        // Send 'X has connected' chat message only
+        // when the first media connection is emitted
+        this.chatService.newMessage({
+          from: { peerId: 'system', username: 'System' },
+          to: { peerId: this.peerId, username: 'Supervisor' },
+          message: `${ username } has connected`,
+          type: MessageType.system,
+          ts: new Date()
+        });
+      }
     }
 
     this.connectionsSubject.next(this.connections);
@@ -126,19 +138,24 @@ export class SupervisorPeerService {
   // Connection handlers
   public onConnectionClose = (remotePeerId: string) =>
     () => {
-      const username = this.connections[ remotePeerId ].username;
+      const { username } = this.connections[ remotePeerId ];
       this.connections[ remotePeerId ].streams.forEach(({ stream }) => stream.getTracks().forEach(track => track.stop()));
       this.connections[ remotePeerId ].calls.forEach(call => call.close());
       this.connections[ remotePeerId ].dataConnection.close();
-      delete this.connections[ remotePeerId ];
 
-      this.chatService.newMessage({
-        from: { peerId: 'system', username: 'System' },
-        to: { peerId: this.peerId, username: 'Supervisor' },
-        message: `${ username } has disconnected`,
-        type: MessageType.system,
-        ts: new Date()
-      });
+      // Send 'X has disconnected' chat message only
+      // if the remote peer had an ongoing media call
+      if (this.connections[ remotePeerId ].streams.length > 0) {
+        this.chatService.newMessage({
+          from: { peerId: 'system', username: 'System' },
+          to: { peerId: this.peerId, username: 'Supervisor' },
+          message: `${ username } has disconnected`,
+          type: MessageType.system,
+          ts: new Date()
+        });
+      }
+
+      delete this.connections[ remotePeerId ];
       this.connectionsSubject.next(this.connections);
     }
 
@@ -150,20 +167,6 @@ export class SupervisorPeerService {
         case Events.setName: {
           const { username } = payload as SetupPeerInformation;
           this.connections[ remotePeerId ].username = username;
-
-          this.chatService.newMessage({
-            from: {
-              peerId: 'system',
-              username: 'System'
-            },
-            to: {
-              peerId: this.peerId,
-              username: 'Supervisor'
-            },
-            message: `${ username } has connected`,
-            type: MessageType.system,
-            ts: new Date()
-          });
           break;
         }
 
@@ -189,20 +192,21 @@ export class SupervisorPeerService {
   }
 
   public broadcastChatMessage(chatMessage: string) {
-    // tslint:disable-next-line:forin
     for (const remotePeerId in this.connections) {
-      const { username, dataConnection } = this.connections[ remotePeerId ];
+      if (this.connections.hasOwnProperty(remotePeerId)) {
 
-      dataConnection?.send(Message.create({
-        type: Events.chatMessage,
-        payload: {
-          from: { peerId: this.peerId, username: 'Supervisor' },
-          to: { peerId: remotePeerId, username },
-          message: chatMessage,
-          type: MessageType.broadcast,
-          ts: new Date()
-        }
-      }));
+        const { username, dataConnection } = this.connections[ remotePeerId ];
+        dataConnection?.send(Message.create({
+          type: Events.chatMessage,
+          payload: {
+            from: { peerId: this.peerId, username: 'Supervisor' },
+            to: { peerId: remotePeerId, username },
+            message: chatMessage,
+            type: MessageType.broadcast,
+            ts: new Date()
+          }
+        }));
+      }
     }
   }
 

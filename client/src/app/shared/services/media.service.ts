@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MediaStreamsObject, StreamOptions, StreamType, SupportedRecordRTCMimeTypes } from '../models/stream';
+import { StreamType, SupportedRecordRTCMimeTypes } from '../models/stream';
 import RecordRTC from 'recordrtc';
 import { environment } from '../../../environments/environment';
 import { UploadService } from './upload.service';
@@ -28,57 +28,46 @@ export class MediaService {
   public roomId: string;
 
   public async loadStreams() {
-    try {
-      const [ userStream, screenStream ] = await Promise.all([
-        navigator.mediaDevices.getUserMedia({ audio: true, video: true }),
+    this.webcamStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
 
-        // @ts-ignore
-        navigator.mediaDevices.getDisplayMedia({ audio: true, video: { deviceId: 1 } })
-      ]);
+    // @ts-ignore; used for suppressing some errors.
+    // ".getDisplayMedia" is provided by the 'webrtc-adapter'
+    // but it cannot be found in the official WebRTC typedef files
+    this.screenStream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: { deviceId: 1 } });
 
-      this.webcamStream = userStream;
-      this.screenStream = screenStream;
+    const isRecordingEnabled = environment.recording.enabled;
+    if (isRecordingEnabled) {
 
-      const isRecordingEnabled = environment.recording.enabled;
-      if (isRecordingEnabled) {
-        const { mimeType } = environment.recording;
-        if (!SupportedRecordRTCMimeTypes.includes(mimeType)) throw new Error('Invalid mimeType for RecordRTC object');
+      const { mimeType } = environment.recording;
+      if (!SupportedRecordRTCMimeTypes.includes(mimeType)) throw new Error('Invalid mimeType for RecordRTC object');
 
-        await this.uploadService.init(this.peerId, this.roomId);
+      await this.uploadService.init(this.peerId, this.roomId);
 
-        const recordRTCOptions: any = {
-          type: 'video',
-          mimeType,
-          timeSlice: 2000,
-        };
-        this.webcamRecorder = new RecordRTC(this.webcamStream, {
-          ...recordRTCOptions,
-          ondataavailable: async (blob) => this.uploadService.upload(StreamType.user, blob)
-        });
-        this.screenRecorder = new RecordRTC(this.screenStream, {
-          ...recordRTCOptions,
-          ondataavailable: async (blob) => this.uploadService.upload(StreamType.screen, blob)
-        });
+      const options = (type: StreamType): any => ({
+        type: 'video',
+        mimeType,
+        timeSlice: 2000,
+        ondataavailable: async (blob: Blob) =>
+          this.uploadService.upload(type, blob)
+      });
+      this.webcamRecorder = new RecordRTC(this.webcamStream, { ...options(StreamType.user) });
+      this.screenRecorder = new RecordRTC(this.screenStream, { ...options(StreamType.screen) });
 
-        this.webcamRecorder.startRecording();
-        this.screenRecorder.startRecording();
-      }
-
-      this.remoteWebcamStream = this.webcamStream.clone();
-      this.remoteScreenStream = this.screenStream.clone();
-
-      this.sharedEvents.streaming = true;
-    } catch (err) {
-      console.error(err);
-      // TODO: Proper error handling
+      this.webcamRecorder.startRecording();
+      this.screenRecorder.startRecording();
     }
+
+    this.remoteWebcamStream = this.webcamStream.clone();
+    this.remoteScreenStream = this.screenStream.clone();
+
+    this.sharedEvents.streaming = true;
   }
 
   public closeStreams() {
     if (environment.recording.enabled) {
       // Stopping the recordings
-      this.webcamRecorder.stopRecording(async () => this.uploadService.upload(StreamType.user,this.webcamRecorder.getBlob()));
-      this.screenRecorder.stopRecording(async () => this.uploadService.upload(StreamType.screen,this.screenRecorder.getBlob()));
+      this.webcamRecorder?.stopRecording(async () => this.uploadService.upload(StreamType.user,this.webcamRecorder.getBlob()));
+      this.screenRecorder?.stopRecording(async () => this.uploadService.upload(StreamType.screen,this.screenRecorder.getBlob()));
     }
 
     [ this.webcamStream,

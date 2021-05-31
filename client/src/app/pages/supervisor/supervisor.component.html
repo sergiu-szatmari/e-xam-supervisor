@@ -41,7 +41,10 @@
 
         <input type="text" nbInput [ngModel]="peerService.peerId" disabled>
 
-        <button nbButton [outline]="copiedToClipBoard" status="info" (click)="onCopyToClipBoard()" >
+<!--                [outline]="copiedToClipBoard"-->
+        <button nbButton
+                [disabled]="copiedToClipBoard"
+                status="info" (click)="onCopyToClipBoard()" >
           <nb-icon [icon]="copiedToClipBoard ? 'checkmark-square-2-outline' : 'clipboard-outline'"></nb-icon>
           {{ copiedToClipBoard ? 'Copied to clipboard' : 'Copy to clipboard' }}
         </button>
@@ -91,4 +94,21 @@
       </div>
     </div>
   </div>
+</div>
+
+<div class="fab-bar" *ngIf="sharedEvents.connected$ | async">
+  <button class="leave-room-btn"
+          mat-fab (click)="onLeaveRoom()"
+          matTooltip="Leave room" matTooltipPosition="above"
+  >
+    <nb-icon icon="log-out-outline" class="rotated"></nb-icon>
+  </button>
+
+  <button class="back-to-grid-btn"
+          *ngIf="focusedRemotePeerId"
+          mat-fab (click)="onBackToGrid()"
+          matTooltip="Back to Grid" matTooltipPosition="above"
+  >
+    <nb-icon icon="grid-outline"></nb-icon>
+  </button>
 </div>

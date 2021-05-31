@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NbToastrService } from '@nebular/theme';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { MediaService } from '../../shared/services/media.service';
@@ -37,11 +37,12 @@ export class RoomComponent implements OnInit, OnDestroy {
   chatMessages: ChatMessage[] = [ ];
   MessageType = MessageType;
   RoomState = RoomState;
-  isLoadingBtn = false;
+  isLoadingBtn = null;
 
   constructor(
     protected toastr: NbToastrService,
     protected sharedEvents: SharedEventsService,
+    protected cdr: ChangeDetectorRef,
     public peerService: RoomPeerService,
     public mediaService: MediaService,
     public chatService: ChatService,
@@ -52,35 +53,45 @@ export class RoomComponent implements OnInit, OnDestroy {
       .pipe(untilDestroyed(this))
       .subscribe((chatMessages) => {
         this.chatMessages = chatMessages;
-        this.scrollToBottom();
+        if (this.chatMessages?.length > 0) this.scrollToBottom();
       });
 
     this.sharedEvents.connected$
       .pipe(untilDestroyed(this))
       .subscribe(async (connected: boolean) => {
         if (connected) {
-          await this.mediaService.loadStreams();
-          // const { user, screen } = await this.mediaService.getStreams();
+          try {
+            await this.mediaService.loadStreams();
 
-          // Initiate both webcam & screenShare media connections
-          this.peerService.initiateCall(this.mediaService.remoteWebcamStream, StreamType.user);
-          this.peerService.initiateCall(this.mediaService.remoteScreenStream, StreamType.screen);
+            // Initiate both webcam & screenShare media connections
+            this.peerService.initiateCall(this.mediaService.remoteWebcamStream, StreamType.user);
+            this.peerService.initiateCall(this.mediaService.remoteScreenStream, StreamType.screen);
 
-          // "Mute" the video & audio tracks
-          // for the screenSharing stream
-          this.mediaService.remoteScreenStream.getTracks().forEach(track => track.enabled = false);
+            // "Mute" the video & audio tracks
+            // for the screenSharing stream
+            this.mediaService.remoteScreenStream.getTracks().forEach(track => track.enabled = false);
 
-          this.isLoadingBtn = false;
-          this.roomStateSubject.next(RoomState.call);
+            // Set "In call" room state
+            this.roomStateSubject.next(RoomState.call);
+          } catch (err) {
+            if (err.message.includes('Permission denied')) {
+              const msg = 'You have to enable webcam, microphone and screen sharing access in order to join the room';
+              this.toastr.warning(msg);
+            }
+            this.onLeaveRoom();
+          } finally {
+            this.isLoadingBtn = null;
+            this.cdr.detectChanges();
+          }
         }
       });
 
-    this.sharedEvents
-      .disconnectRequest$
-      .pipe(untilDestroyed(this))
-      .subscribe(disconnect => {
-        if (disconnect) this.onLeaveRoom();
-      })
+    // this.sharedEvents
+    //   .disconnectRequest$
+    //   .pipe(untilDestroyed(this))
+    //   .subscribe(disconnect => {
+    //     if (disconnect) this.onLeaveRoom();
+    //   })
   }
 
   public ngOnDestroy(): void {
@@ -115,15 +126,13 @@ export class RoomComponent implements OnInit, OnDestroy {
   }
 
   public onLeaveRoom() {
-    if (this.peerService.disconnect()) {
-      // If peer disconnects successfully
-      // (peer exists before, was connected, etc)
-      this.peerService.disconnect();
-      this.roomStateSubject.next(RoomState.endedCall);
-      this.chatService.clear();
-    }
-
+    this.peerService.disconnect();
+    this.chatService.clear();
     this.mediaService.closeStreams();
+
+    if (this.roomStateSubject.value === RoomState.call) {
+      this.roomStateSubject.next(RoomState.endedCall);
+    }
   }
 
   public onSendChatMessage() {

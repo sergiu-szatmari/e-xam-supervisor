@@ -1,13 +1,13 @@
 <button (click)="this.clicked.emit()"
-    [routerLinkActive]="item.link ? 'active' : ''"
-    [routerLink]="item?.link || []"
-   class="app-link"
-   matRipple
+        [routerLinkActive]="item.link ? 'active' : ''"
+        [routerLink]="item?.link || []"
+        class="app-link"
+        matRipple
+        [matTooltip]="item.title"
+        matTooltipPosition="right"
 >
   <nb-icon *ngIf="item.evaIcon"
            [icon]="item.evaIcon"
            [class.rotated]="item.title === 'Leave Room'"
   ></nb-icon>
-
-  <span>{{ item.title }}</span>
 </button>

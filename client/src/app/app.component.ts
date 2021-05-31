@@ -1,6 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
 import 'webrtc-adapter';
+import { SharedEventsService } from './shared/services/shared-events.service';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,7 @@ export class AppComponent {
 
   condensed: boolean;
 
-  constructor() { }
+  constructor(public sharedEvents: SharedEventsService) { }
 
   async toggleSidenav() {
     this.condensed = !this.condensed;

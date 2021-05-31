@@ -20,6 +20,9 @@ import { LogoComponent } from './components/logo/logo.component';
 import { SidenavComponent } from './components/sidenav/sidenav.component';
 import { LinkViewComponent } from './components/sidenav/link-view/link-view.component';
 import { VideoContainerComponent } from './components/video-container/video-container.component';
+import { MatRippleModule } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 
 registerLocaleData(localeEnGb);
 
@@ -34,7 +37,9 @@ const nebularModules = [
 
 const materialModules = [
   MatInputModule,
-  MatSidenavModule
+  MatSidenavModule,
+  MatButtonModule,
+  MatTooltipModule,
 ];
 
 const usedModules = [
@@ -55,7 +60,7 @@ const usedModules = [
     LinkViewComponent,
     VideoContainerComponent
   ],
-  imports: [ ...usedModules ],
+  imports: [ ...usedModules, MatRippleModule, MatTooltipModule ],
   exports: [
     ...usedModules,
     LogoComponent,
