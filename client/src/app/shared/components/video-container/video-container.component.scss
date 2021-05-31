@@ -11,10 +11,7 @@
 
   video {
     max-height: 100%;
-    min-height: 100%;
-
     max-width: 100%;
-    min-width: 100%;
 
     opacity: .7;
     transition: .3s ease-in-out;
@@ -26,17 +23,18 @@
   }
 
   span {
+    border-radius: 8px;
     color: white;
-    font-size: 1rem;
+    font-size: 1.25em;
     font-weight: 400;
 
     position: absolute;
-    bottom: -0.25rem;
-    left: 0;
+    bottom: 16px;
+    left: 16px;
 
-    width: 100%;
+    width: fit-content;
     text-align: center;
     background-color: #111;
-    padding: .25rem;
+    padding: .25rem 1rem;
   }
 }
