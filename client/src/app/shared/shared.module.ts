@@ -13,7 +13,6 @@ import {
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { NgSelectModule } from '@ng-select/ng-select';
 
 import localeEnGb from '@angular/common/locales/en-GB';
 import { LogoComponent } from './components/logo/logo.component';
@@ -48,7 +47,6 @@ const usedModules = [
   ReactiveFormsModule,
   RouterModule,
   HttpClientModule,
-  NgSelectModule,
   ...nebularModules,
   ...materialModules,
 ];

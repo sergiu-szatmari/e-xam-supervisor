@@ -65,13 +65,6 @@ export class SupervisorComponent implements OnInit, OnDestroy {
         if (!connected) this.onLeaveRoom();
       })
 
-    // this.sharedEvents
-    //   .disconnectRequest$
-    //   .pipe(untilDestroyed(this))
-    //   .subscribe(disconnect => {
-    //     if (disconnect) this.onLeaveRoom();
-    //   });
-
     this.sharedEvents
       .backToGridViewRequest$
       .pipe(untilDestroyed(this))

@@ -79,19 +79,13 @@ export class RoomComponent implements OnInit, OnDestroy {
               this.toastr.warning(msg);
             }
             this.onLeaveRoom();
+            this.roomStateSubject.next(RoomState.idle);
           } finally {
             this.isLoadingBtn = null;
             this.cdr.detectChanges();
           }
         }
       });
-
-    // this.sharedEvents
-    //   .disconnectRequest$
-    //   .pipe(untilDestroyed(this))
-    //   .subscribe(disconnect => {
-    //     if (disconnect) this.onLeaveRoom();
-    //   })
   }
 
   public ngOnDestroy(): void {
