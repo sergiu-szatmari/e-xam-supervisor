@@ -56,8 +56,7 @@ export class RoomComponent implements OnInit, OnDestroy {
       .pipe(untilDestroyed(this))
       .subscribe((chatMessages) => {
         this.chatMessages = chatMessages;
-        if (this.chatMessages?.length > 0) this.scrollToBottom();
-
+        this.scrollToBottom();
         if (!this.isChatVisible) this.isNewChatActivity = true;
       });
 
@@ -155,7 +154,7 @@ export class RoomComponent implements OnInit, OnDestroy {
       this.toastr.danger(err.message);
     } finally {
       this.isSending = false;
-      this.chatMessage = '';
+      setTimeout(() => this.chatMessage = '');
     }
   }
 

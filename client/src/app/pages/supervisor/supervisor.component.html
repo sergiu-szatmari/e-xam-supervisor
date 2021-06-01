@@ -10,36 +10,14 @@
       </button>
 
       <div class="attendees-previews">
-        <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
-          <app-video-container [stream]="entry.stream"
-                                 [label]="entry.username"
-                                 (videoClicked)="onFocusMode(entry.peerId)"
-            ></app-video-container>
-        </div>
-        <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
-          <app-video-container [stream]="entry.stream"
-                                 [label]="entry.username"
-                                 (videoClicked)="onFocusMode(entry.peerId)"
-            ></app-video-container>
-        </div>
-        <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
-          <app-video-container [stream]="entry.stream"
-                                 [label]="entry.username"
-                                 (videoClicked)="onFocusMode(entry.peerId)"
-            ></app-video-container>
-        </div>
-        <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
-          <app-video-container [stream]="entry.stream"
-                                 [label]="entry.username"
-                                 (videoClicked)="onFocusMode(entry.peerId)"
-            ></app-video-container>
-        </div>
-        <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
-          <app-video-container [stream]="entry.stream"
-                                 [label]="entry.username"
-                                 (videoClicked)="onFocusMode(entry.peerId)"
-            ></app-video-container>
-        </div>
+<!--        <ng-container *ngFor="let _ of [1,2,3,4,5]">-->
+          <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
+            <app-video-container [stream]="entry.stream"
+                                   [label]="entry.username"
+                                   (videoClicked)="onFocusMode(entry.peerId)"
+              ></app-video-container>
+          </div>
+<!--        </ng-container>-->
       </div>
     </ng-container>
 

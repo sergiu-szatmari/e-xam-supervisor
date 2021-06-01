@@ -59,7 +59,6 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       .subscribe((chatMessages) => {
         this.chatMessages = chatMessages;
         this.scrollToBottom();
-
         if (!this.isChatVisible) this.isNewChatActivity = true;
       });
 
