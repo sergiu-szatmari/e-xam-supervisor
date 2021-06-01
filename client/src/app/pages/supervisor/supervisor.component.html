@@ -106,8 +106,9 @@
           [class.invisible]="isChatVisible"
           mat-fab
           matTooltip="Open chat" matTooltipPosition="left"
-          (click)="isChatVisible = true"
+          (click)="isChatVisible = true; isNewChatActivity = false"
   >
+    <span class="chat-dot" *ngIf="isNewChatActivity"></span>
     <nb-icon icon="message-square-outline"></nb-icon>
   </button>
 </div>

@@ -45,6 +45,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   roomView: RoomView = RoomView.grid;
   copiedToClipBoard = null;
   isChatVisible = true;
+  isNewChatActivity = false;
 
   constructor(
     protected toastr: NbToastrService,
@@ -60,6 +61,8 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       .subscribe((chatMessages) => {
         this.chatMessages = chatMessages;
         this.scrollToBottom();
+
+        if (!this.isChatVisible) this.isNewChatActivity = true;
       });
 
     this.sharedEvents

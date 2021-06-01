@@ -128,6 +128,14 @@ body {
       pointer-events: none;
       transition: .4s ease-in-out;
     }
+
+    .chat-dot {
+      background-color: indianred;
+      width: 10px;
+      height: 10px;
+      position: absolute;
+      border-radius: 50%;
+    }
   }
   .back-to-grid-btn { color: #333; background-color: white; }
 }
