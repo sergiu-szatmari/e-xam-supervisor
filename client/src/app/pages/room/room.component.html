@@ -1,6 +1,18 @@
-<section class="room" [class.include-chat]="(roomState$ | async) === RoomState.call">
+<section class="room" [class.include-chat]="(roomState$ | async) === RoomState.call && isChatVisible">
 
-  <div class="chat-container" *ngIf="(roomState$ | async) === RoomState.call">
+  <div class="chat-container"
+       [class.hidden-chat]="!isChatVisible"
+       *ngIf="(roomState$ | async) === RoomState.call"
+  >
+    <button class="hide-chat-btn"
+            *ngIf="isChatVisible"
+            (click)="isChatVisible = false"
+            mat-mini-fab
+            matTooltip="Hide chat"
+            matTooltipPosition="left">
+      <nb-icon icon="close-outline"></nb-icon>
+    </button>
+
     <div class="room-id-panel">
       <span class="label">Room ID</span>
       <input type="text" nbInput value="{{ roomId }}" disabled>
@@ -38,9 +50,7 @@
                [(ngModel)]="chatMessage"
                (keyup.enter)="onSendChatMessage()"
         >
-        <button nbButton status="info"
-                (click)="onSendChatMessage()"
-                [disabled]="isSending || !(chatMessage?.length > 0)">
+        <button nbButton status="info" (click)="onSendChatMessage()">
           <nb-icon icon="paper-plane-outline"></nb-icon>
         </button>
       </div>
@@ -78,6 +88,18 @@
     <span>See you next time, {{ attendeeName }}! 👋</span>
   </div>
 </section>
+
+<div class="fab-bar upper-right" *ngIf="(roomState$ | async) === RoomState.call">
+  <button class="open-chat-btn"
+          [class.invisible]="isChatVisible"
+          mat-fab
+          matTooltip="Open chat" matTooltipPosition="left"
+          (click)="isChatVisible = true; isNewChatActivity = false"
+  >
+    <span class="chat-dot" *ngIf="isNewChatActivity"></span>
+    <nb-icon icon="message-square-outline"></nb-icon>
+  </button>
+</div>
 
 <div class="fab-bar" *ngIf="(roomState$ | async) === RoomState.call">
   <button class="leave-room-btn"

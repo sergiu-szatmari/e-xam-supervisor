@@ -39,6 +39,8 @@ export class RoomComponent implements OnInit, OnDestroy {
   RoomState = RoomState;
   isLoadingBtn = null;
   isSending = false;
+  isChatVisible = true;
+  isNewChatActivity = false;
 
   constructor(
     protected toastr: NbToastrService,
@@ -55,6 +57,8 @@ export class RoomComponent implements OnInit, OnDestroy {
       .subscribe((chatMessages) => {
         this.chatMessages = chatMessages;
         if (this.chatMessages?.length > 0) this.scrollToBottom();
+
+        if (!this.isChatVisible) this.isNewChatActivity = true;
       });
 
     this.sharedEvents.connected$
@@ -146,12 +150,12 @@ export class RoomComponent implements OnInit, OnDestroy {
 
       this.peerService.sendChatMessage(this.chatMessage);
       this.scrollToBottom();
-      this.chatMessage = '';
     } catch (err) {
       console.error(err);
       this.toastr.danger(err.message);
     } finally {
       this.isSending = false;
+      this.chatMessage = '';
     }
   }
 

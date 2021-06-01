@@ -21,9 +21,6 @@ enum RoomView {
 })
 export class SupervisorComponent implements OnInit, OnDestroy {
 
-  @ViewChild('chatContainer')
-  chatContainer: ElementRef;
-
   @ViewChild('messagesBox')
   messagesBox: ElementRef;
 
@@ -44,6 +41,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   RoomView = RoomView;
   roomView: RoomView = RoomView.grid;
   copiedToClipBoard = null;
+  isSending = false;
   isChatVisible = true;
   isNewChatActivity = false;
 
@@ -129,29 +127,39 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   }
 
   public onSendChatMessage() {
+    if (this.isSending) return;
     if (this.chatMessage === '') return;
 
-    const message: ChatMessage = {
-      from: { peerId: this.peerService.peerId, username: 'Supervisor', },
-      message: this.chatMessage,
-      type: this.focusedRemotePeerId ? MessageType.chat : MessageType.broadcast,
-      ts: new Date()
-    };
+    this.isSending = true;
 
-    if (this.focusedRemotePeerId) {
-      message.to = { peerId: this.focusedRemotePeerId, username: this.focusedRemotePeerUsername };
+    try {
+      const message: ChatMessage = {
+        from: { peerId: this.peerService.peerId, username: 'Supervisor', },
+        message: this.chatMessage,
+        type: this.focusedRemotePeerId ? MessageType.chat : MessageType.broadcast,
+        ts: new Date()
+      };
+
+      if (this.focusedRemotePeerId) {
+        message.to = { peerId: this.focusedRemotePeerId, username: this.focusedRemotePeerUsername };
+      }
+
+      this.chatService.newMessage(message);
+
+      if (this.focusedRemotePeerId) {
+        this.peerService.sendChatMessage(this.focusedRemotePeerId, this.chatMessage);
+      } else {
+        this.peerService.broadcastChatMessage(this.chatMessage);
+      }
+
+      this.scrollToBottom();
+    } catch (err) {
+      console.error(err);
+      this.toastr.danger(err.message);
+    } finally {
+      this.isSending = false;
+      this.chatMessage = '';
     }
-
-    this.chatService.newMessage(message);
-
-    if (this.focusedRemotePeerId) {
-      this.peerService.sendChatMessage(this.focusedRemotePeerId, this.chatMessage);
-    } else {
-      this.peerService.broadcastChatMessage(this.chatMessage);
-    }
-
-    this.scrollToBottom();
-    this.chatMessage = '';
   }
 
   public onLeaveRoom() {

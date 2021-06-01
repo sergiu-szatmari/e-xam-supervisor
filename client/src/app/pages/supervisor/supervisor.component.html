@@ -10,8 +10,32 @@
       </button>
 
       <div class="attendees-previews">
-          <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
-            <app-video-container [stream]="entry.stream"
+        <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
+          <app-video-container [stream]="entry.stream"
+                                 [label]="entry.username"
+                                 (videoClicked)="onFocusMode(entry.peerId)"
+            ></app-video-container>
+        </div>
+        <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
+          <app-video-container [stream]="entry.stream"
+                                 [label]="entry.username"
+                                 (videoClicked)="onFocusMode(entry.peerId)"
+            ></app-video-container>
+        </div>
+        <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
+          <app-video-container [stream]="entry.stream"
+                                 [label]="entry.username"
+                                 (videoClicked)="onFocusMode(entry.peerId)"
+            ></app-video-container>
+        </div>
+        <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
+          <app-video-container [stream]="entry.stream"
+                                 [label]="entry.username"
+                                 (videoClicked)="onFocusMode(entry.peerId)"
+            ></app-video-container>
+        </div>
+        <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
+          <app-video-container [stream]="entry.stream"
                                  [label]="entry.username"
                                  (videoClicked)="onFocusMode(entry.peerId)"
             ></app-video-container>
@@ -27,7 +51,6 @@
     </ng-template>
 
     <div class="chat-container"
-         #chatContainer
          [class.hidden-chat]="!isChatVisible"
          *ngIf="sharedEvents.connected$ | async"
     >
@@ -76,7 +99,7 @@
                         '' :
                         '[' + chatMessage.to.username + ']'
                     )
-                }}</span>
+                  }}</span>
             </span>
             <span class="message-body">{{ chatMessage.message }}</span>
 
@@ -90,9 +113,7 @@
                  [(ngModel)]="chatMessage"
                  (keyup.enter)="onSendChatMessage()"
           >
-          <button nbButton status="info"
-                  (click)="onSendChatMessage()"
-                  [disabled]="!(chatMessage?.length > 0)">
+          <button nbButton status="info" (click)="onSendChatMessage()">
             <nb-icon icon="paper-plane-outline"></nb-icon>
           </button>
         </div>

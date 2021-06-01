@@ -12,9 +12,31 @@ section.room {
   position: relative;
 
   padding: 1rem;
+  overflow: hidden;
   &.include-chat { padding: 1rem calc(var(--chat-container-width) + 1rem) 1rem 1rem; }
 
   .chat-container {
+    transition: .4s ease-in-out;
+
+    &.hidden-chat {
+      right: -360px; // var(--chat-container-width)
+      transition: .4s ease-in-out;
+    }
+
+    .hide-chat-btn {
+      position: absolute;
+      top: 8px;
+      left: -15px;
+
+      width: 30px; height: 30px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      background-color: #ebebeb;
+    }
+
     position: absolute;
     top: 0;
     right: 0;
