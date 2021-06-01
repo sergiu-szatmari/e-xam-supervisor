@@ -99,7 +99,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       });
   }
 
-  public ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.onLeaveRoom();
   }
 
@@ -164,6 +164,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   public onLeaveRoom() {
     try {
       this.peerService.disconnect();
+      this.chatService.clear();
       this.sharedEvents.streaming = false;
     } catch (err) {
       this.toastr.danger(err.message);

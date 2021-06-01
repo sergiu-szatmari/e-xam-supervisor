@@ -92,7 +92,7 @@ export class RoomComponent implements OnInit, OnDestroy {
       });
   }
 
-  public ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.mediaService.closeStreams();
     this.roomStateSubject.next(RoomState.idle);
   }
