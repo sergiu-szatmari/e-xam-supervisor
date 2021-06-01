@@ -1,6 +1,7 @@
 @import "~@nebular/theme/styles/globals";
 @import "styles/nebular-theme";
 @import "styles/theme-overrides";
+@import "~animate.css/animate.min.css";
 
 @include nb-install() {
   @include nb-theme-global();
@@ -86,6 +87,13 @@ body {
   left: 2em;
   z-index: 1;
 
+  &.upper-right {
+    bottom: unset;
+    left: unset;
+    top: 2em;
+    right: 2em;
+  }
+
   button {
     border-radius: 10rem !important;
     margin-left: 0.8rem;
@@ -109,13 +117,17 @@ body {
     }
   }
 
-  .leave-room-btn {
-    background-color: indianred;
+  .leave-room-btn { color: white; background-color: indianred; }
+  .open-chat-btn {
     color: white;
+    background-color: #bbb;
+    transition: .4s ease-in-out;
+    &.invisible {
+      opacity: 0;
+      z-index: -99;
+      pointer-events: none;
+      transition: .4s ease-in-out;
+    }
   }
-
-  .back-to-grid-btn {
-    background-color: white;
-    color: #333;
-  }
+  .back-to-grid-btn { color: #333; background-color: white; }
 }

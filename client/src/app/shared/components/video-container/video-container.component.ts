@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-video-container',
@@ -15,6 +15,9 @@ export class VideoContainerComponent implements OnInit {
 
   @Input()
   label = '';
+
+  @Output()
+  videoClicked = new EventEmitter<void>();
 
   constructor() { }
 

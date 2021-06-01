@@ -1,4 +1,4 @@
 <div class="container">
-  <video autoplay [muted]="false" [srcObject]="stream"></video>
+  <video autoplay [muted]="false" [srcObject]="stream" (click)="videoClicked.emit()"></video>
   <span class="label" *ngIf="displayLabel">{{ label }}</span>
 </div>

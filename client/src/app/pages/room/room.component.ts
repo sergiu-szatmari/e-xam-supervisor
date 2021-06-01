@@ -38,6 +38,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   MessageType = MessageType;
   RoomState = RoomState;
   isLoadingBtn = null;
+  isSending = false;
 
   constructor(
     protected toastr: NbToastrService,
@@ -130,19 +131,28 @@ export class RoomComponent implements OnInit, OnDestroy {
   }
 
   public onSendChatMessage() {
+    if (this.isSending) return;
     if (this.chatMessage === '') return;
 
-    this.chatService.newMessage({
-      from: { peerId: this.peerService.peerId, username: this.attendeeName },
-      to: { peerId: this.roomId, username: 'Supervisor' },
-      message: this.chatMessage,
-      type: MessageType.chat,
-      ts: new Date(),
-    });
+    this.isSending = true;
+    try {
+      this.chatService.newMessage({
+        from: { peerId: this.peerService.peerId, username: this.attendeeName },
+        to: { peerId: this.roomId, username: 'Supervisor' },
+        message: this.chatMessage,
+        type: MessageType.chat,
+        ts: new Date(),
+      });
 
-    this.peerService.sendChatMessage(this.chatMessage);
-    this.scrollToBottom();
-    this.chatMessage = '';
+      this.peerService.sendChatMessage(this.chatMessage);
+      this.scrollToBottom();
+      this.chatMessage = '';
+    } catch (err) {
+      console.error(err);
+      this.toastr.danger(err.message);
+    } finally {
+      this.isSending = false;
+    }
   }
 
   public scrollToBottom() {

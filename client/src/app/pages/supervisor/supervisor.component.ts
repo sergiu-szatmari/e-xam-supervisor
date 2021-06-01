@@ -21,6 +21,9 @@ enum RoomView {
 })
 export class SupervisorComponent implements OnInit, OnDestroy {
 
+  @ViewChild('chatContainer')
+  chatContainer: ElementRef;
+
   @ViewChild('messagesBox')
   messagesBox: ElementRef;
 
@@ -41,6 +44,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   RoomView = RoomView;
   roomView: RoomView = RoomView.grid;
   copiedToClipBoard = null;
+  isChatVisible = true;
 
   constructor(
     protected toastr: NbToastrService,

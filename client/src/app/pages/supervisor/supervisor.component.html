@@ -1,4 +1,4 @@
-<div class="container" [class.include-chat]="sharedEvents.connected$ | async">
+<div class="container" [class.include-chat]="(sharedEvents.connected$ | async) && isChatVisible">
   <div class="room-container" [class.idle]="!(sharedEvents.connected$ | async)">
     <ng-container *ngIf="roomView === RoomView.grid; else focusedViewTemplate">
       <button *ngIf="!(sharedEvents.connected$ | async)"
@@ -13,7 +13,7 @@
           <div class="attendee-preview" *ngFor="let entry of streams; let i = index">
             <app-video-container [stream]="entry.stream"
                                  [label]="entry.username"
-                                 (click)="onFocusMode(entry.peerId)"
+                                 (videoClicked)="onFocusMode(entry.peerId)"
             ></app-video-container>
         </div>
       </div>
@@ -21,27 +21,30 @@
 
     <ng-template #focusedViewTemplate>
       <div class="focused-view-container">
-<!--        <app-video-container-->
-<!--          [stream]="userStream"-->
-<!--          label="{{ focusedRemotePeerUsername }}"-->
-<!--        ></app-video-container>-->
-
-<!--        <app-video-container-->
-<!--          [stream]="screenStream"-->
-<!--          label="{{ focusedRemotePeerUsername }}'s screen"-->
-<!--        ></app-video-container>-->
         <video autoplay muted [srcObject]="userStream"></video>
         <video autoplay muted [srcObject]="screenStream"></video>
       </div>
     </ng-template>
 
-    <div class="chat-container" *ngIf="sharedEvents.connected$ | async">
+    <div class="chat-container"
+         #chatContainer
+         [class.hidden-chat]="!isChatVisible"
+         *ngIf="sharedEvents.connected$ | async"
+    >
+      <button class="hide-chat-btn"
+              *ngIf="isChatVisible"
+              (click)="isChatVisible = false"
+              mat-mini-fab
+              matTooltip="Hide chat"
+              matTooltipPosition="left">
+        <nb-icon icon="close-outline"></nb-icon>
+      </button>
+
       <div class="room-id-panel">
         <span class="label">Room ID</span>
 
         <input type="text" nbInput [ngModel]="peerService.peerId" disabled>
 
-<!--                [outline]="copiedToClipBoard"-->
         <button nbButton
                 [disabled]="copiedToClipBoard"
                 status="info" (click)="onCopyToClipBoard()" >
@@ -54,28 +57,30 @@
         <ul class="messages-box" #messagesBox>
           <li class="message"
               *ngFor="let chatMessage of chatMessages"
-              [ngClass]="{ system: chatMessage.from.peerId === 'system', to: chatMessage.from.peerId === peerService.peerId, from: chatMessage.from.peerId !== peerService.peerId }"
+              [class.system]="chatMessage.from.peerId === 'system'"
+              [class.to]="chatMessage.from.peerId === peerService.peerId"
+              [class.from]="chatMessage.from.peerId !== peerService.peerId"
           >
-            <span class="message-header" *ngIf="chatMessage.from.peerId === 'system'; else notSystemMessage">
-              <i>{{ chatMessage.message }}</i>
-              <br/>
-              ({{ chatMessage.ts | date: 'HH:mm:ss' }})
+            <span class="message-header" *ngIf="chatMessage.from.peerId !== 'system'">
+                <span class="name-tag">{{
+                  chatMessage.from.peerId !== peerService.peerId ?
+                    chatMessage.from.username :
+                    'You'
+                }}
+                </span>
+                <span class="message-type-tag">{{
+                  chatMessage.type === MessageType.broadcast ?
+                    'Broadcast' :
+                    'Direct ' + (
+                      chatMessage.to.peerId === peerService.peerId ?
+                        '' :
+                        '[' + chatMessage.to.username + ']'
+                    )
+                }}</span>
             </span>
+            <span class="message-body">{{ chatMessage.message }}</span>
 
-            <ng-template #notSystemMessage>
-              <span class="message-header">
-                [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{
-                chatMessage.from.peerId !== peerService.peerId ?
-                  chatMessage.from.username :
-                  'You ' + (
-                    chatMessage.type === MessageType.broadcast ?
-                      '(Broadcast)' :
-                      '(Direct to ' + chatMessage.to.username + ')'
-                  )
-                }}:</i>
-              </span>
-              <span>{{ chatMessage.message }}</span>
-            </ng-template>
+            <span class="timestamp">{{ chatMessage.ts | date: 'HH:mm:ss' }}</span>
           </li>
         </ul>
         <div class="typing-box">
@@ -94,6 +99,17 @@
       </div>
     </div>
   </div>
+</div>
+
+<div class="fab-bar upper-right" *ngIf="sharedEvents.connected$ | async">
+  <button class="open-chat-btn"
+          [class.invisible]="isChatVisible"
+          mat-fab
+          matTooltip="Open chat" matTooltipPosition="left"
+          (click)="isChatVisible = true"
+  >
+    <nb-icon icon="message-square-outline"></nb-icon>
+  </button>
 </div>
 
 <div class="fab-bar" *ngIf="sharedEvents.connected$ | async">

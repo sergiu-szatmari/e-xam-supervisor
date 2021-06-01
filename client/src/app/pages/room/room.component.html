@@ -14,26 +14,21 @@
             [class.to]="chatMessage.from.peerId === peerService.peerId"
             [class.from]="chatMessage.from.peerId !== peerService.peerId"
         >
-            <span class="message-header" *ngIf="chatMessage.from.peerId === 'system'; else notSystemMessage">
-              <i>{{ chatMessage.message }}</i>
-              <br/>
-              ({{ chatMessage.ts | date: 'HH:mm:ss' }})
-            </span>
-
-          <ng-template #notSystemMessage>
-              <span class="message-header">
-                [ {{ chatMessage.ts | date: 'HH:mm:ss' }} ] <i>{{
+          <span class="message-header" *ngIf="chatMessage.from.peerId !== 'system'">
+                <span class="name-tag">{{
                   chatMessage.from.peerId !== peerService.peerId ?
-                    (chatMessage.from.username +
-                      (chatMessage.type === MessageType.broadcast ?
-                        ' (Broadcast)' :
-                        ' (Direct)'
-                    )) :
+                    chatMessage.from.username :
                     'You'
-                }}:</i>
-              </span>
-            <span>{{ chatMessage.message }}</span>
-          </ng-template>
+                  }}
+                </span>
+                <span class="message-type-tag">
+                  {{ chatMessage.type === MessageType.broadcast ? 'Broadcast' : 'Direct' }}
+                </span>
+            </span>
+          <span class="message-body">{{ chatMessage.message }}</span>
+
+          <span class="timestamp">{{ chatMessage.ts | date: 'HH:mm:ss' }}</span>
+
         </li>
       </ul>
       <div class="typing-box">
@@ -45,7 +40,7 @@
         >
         <button nbButton status="info"
                 (click)="onSendChatMessage()"
-                [disabled]="!(chatMessage?.length > 0)">
+                [disabled]="isSending || !(chatMessage?.length > 0)">
           <nb-icon icon="paper-plane-outline"></nb-icon>
         </button>
       </div>
