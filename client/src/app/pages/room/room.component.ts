@@ -8,6 +8,8 @@ import { RoomPeerService } from '../../shared/services/room-peer.service';
 import { ChatMessage, MessageType } from '../../shared/models/message';
 import { StreamType } from '../../shared/models/stream';
 import { SharedEventsService } from '../../shared/services/shared-events.service';
+import { ActivatedRoute } from '@angular/router';
+import { take } from 'rxjs/operators';
 
 enum RoomState {
   idle = 'idle',
@@ -46,12 +48,21 @@ export class RoomComponent implements OnInit, OnDestroy {
     protected toastr: NbToastrService,
     protected sharedEvents: SharedEventsService,
     protected cdr: ChangeDetectorRef,
+    protected route: ActivatedRoute,
     public peerService: RoomPeerService,
     public mediaService: MediaService,
     public chatService: ChatService,
   ) { }
 
   ngOnInit(): void {
+    this.route
+      .queryParams
+      .pipe(take(1))
+      .subscribe(paramMap => {
+        const { id } = paramMap;
+        if (id) this.roomId = id;
+      });
+
     this.chatService.chatMessages$
       .pipe(untilDestroyed(this))
       .subscribe((chatMessages) => {
@@ -70,6 +81,10 @@ export class RoomComponent implements OnInit, OnDestroy {
             // Initiate both webcam & screenShare media connections
             this.peerService.initiateCall(this.mediaService.remoteWebcamStream, StreamType.user);
             this.peerService.initiateCall(this.mediaService.remoteScreenStream, StreamType.screen);
+
+            // "Mute" the audio for the local streams
+            this.mediaService.webcamStream.getAudioTracks().forEach(track => track.enabled = false);
+            this.mediaService.screenStream.getAudioTracks().forEach(track => track.enabled = false);
 
             // "Mute" the video & audio tracks
             // for the screenSharing stream
