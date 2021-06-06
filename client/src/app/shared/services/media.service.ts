@@ -41,7 +41,7 @@ export class MediaService {
       const { mimeType } = environment.recording;
       if (!SupportedRecordRTCMimeTypes.includes(mimeType)) throw new Error('Invalid mimeType for RecordRTC object');
 
-      await this.uploadService.init(this.peerId, this.roomId);
+      await this.uploadService.init(this.roomId, this.peerId);
 
       const options = (type: StreamType): any => ({
         type: 'video',

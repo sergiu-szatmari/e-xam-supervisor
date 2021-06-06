@@ -23,4 +23,26 @@ export class ChatService {
     this.chatMessages = [];
     this.chatMessageSubject.next(this.chatMessages);
   }
+
+  public exportToCsv() {
+    if (this.chatMessages.length === 1) return;
+
+    const delimiter = { column: ',', line: '\n' };
+    const keys = [ 'From (Username)', 'From (Peer ID)', 'To (Username)', 'To (Peer ID)', 'Message', 'Message type', 'Timestamp' ];
+    let fileContent = keys.join(delimiter.column) + delimiter.line;
+    fileContent += this.chatMessages
+        .map(chatMessage => [
+          chatMessage.from?.username || '-',
+          chatMessage.from?.peerId || '-',
+          chatMessage.to?.username || '-',
+          chatMessage.to?.peerId || '-',
+          chatMessage.message || '-',
+          chatMessage.type || '-',
+          chatMessage.ts || '-',
+        ])
+        .map(item => item.join(delimiter.column))
+        .join(delimiter.line);
+
+    return new Blob([ fileContent ], { type: 'text/csv' });
+  }
 }

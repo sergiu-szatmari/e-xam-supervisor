@@ -7,6 +7,7 @@ import { PeerConnections } from '../../shared/models/peer-connections';
 import { NbToastrService } from '@nebular/theme';
 import { StreamType } from '../../shared/models/stream';
 import { SharedEventsService } from '../../shared/services/shared-events.service';
+import { UploadService } from '../../shared/services/upload.service';
 
 enum RoomView {
   grid = 'grid',
@@ -47,6 +48,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
 
   constructor(
     protected toastr: NbToastrService,
+    protected uploadService: UploadService,
     public sharedEvents: SharedEventsService,
     public chatService: ChatService,
     public peerService: SupervisorPeerService,
@@ -66,7 +68,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       .connected$
       .pipe(untilDestroyed(this))
       .subscribe(async (connected) => {
-        if (!connected) this.onLeaveRoom();
+        if (!connected) return this.onLeaveRoom();
       })
 
     this.sharedEvents
@@ -100,12 +102,13 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.onLeaveRoom();
+    this.onLeaveRoom().then();
   }
 
   public onCreateRoom() {
     this.peerService.connect();
     this.sharedEvents.streaming = true;
+    setTimeout(async () => this.uploadService.init(this.peerService.peerId, null), 200);
   }
 
   public onCopyToClipBoard() {
@@ -161,11 +164,16 @@ export class SupervisorComponent implements OnInit, OnDestroy {
     }
   }
 
-  public onLeaveRoom() {
+  public async onLeaveRoom() {
     try {
-      this.peerService.disconnect();
-      this.chatService.clear();
-      this.sharedEvents.streaming = false;
+      if (this.peerService.peerId) {
+        const csv = this.chatService.exportToCsv();
+        await this.uploadService.uploadChat(csv);
+
+        this.peerService.disconnect();
+        this.chatService.clear();
+        this.sharedEvents.streaming = false;
+      }
     } catch (err) {
       this.toastr.danger(err.message);
     }
@@ -219,8 +227,8 @@ export class SupervisorComponent implements OnInit, OnDestroy {
 
   public scrollToBottom() {
     const scroll = () => {
-      const top = this.messagesBox.nativeElement.scrollHeight;
-      this.messagesBox.nativeElement.scroll({ top, behaviour: 'smooth' });
+      const top = this.messagesBox?.nativeElement.scrollHeight;
+      this.messagesBox?.nativeElement.scroll({ top, behaviour: 'smooth' });
     };
 
     if (this.messagesBox) setTimeout(scroll, 1);

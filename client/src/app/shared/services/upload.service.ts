@@ -9,28 +9,38 @@ import { environment } from '../../../environments/environment';
 export class UploadService {
 
   private uploadData: { [type in StreamType]?: UploadResponse } = { };
+  private chatUploadData: UploadResponse;
 
   constructor(protected http: HttpClient) { }
 
-  public async init(peerId: string, roomId: string) {
+  public async init(roomId: string, peerId: string | null) {
     const { uploadUrl } = environment.server;
-    let { mimeType } = environment.recording;
 
-    if (mimeType.includes(';')) [ mimeType ] = mimeType.split(';');
+    if (peerId === null) { // Supervisor service uploads csv
+      const url = `${ uploadUrl }/chat`;
 
-    await Promise.all(
-      Object.keys(StreamType).map(async (recordingType) => {
-        const requestObj = {
-          peerId, roomId,
-          recordingType,
-          mimeType
-        };
+      this.chatUploadData = await this.http
+        .post<UploadResponse>(url, { roomId })
+        .toPromise();
 
-        this.uploadData[ recordingType ] = await this.http
-          .post<UploadResponse>(uploadUrl, requestObj)
-          .toPromise()
-      })
-    );
+    } else { // Attendee service uploads stream
+      let { mimeType } = environment.recording;
+      if (mimeType.includes(';')) [ mimeType ] = mimeType.split(';');
+
+      await Promise.all(
+        Object.keys(StreamType).map(async (recordingType) => {
+          const requestObj = {
+            peerId, roomId,
+            recordingType,
+            mimeType
+          };
+
+          this.uploadData[ recordingType ] = await this.http
+            .post<UploadResponse>(uploadUrl, requestObj)
+            .toPromise()
+        })
+      );
+    }
   }
 
   public async upload(streamType: StreamType, blob?: Blob) {
@@ -42,6 +52,19 @@ export class UploadService {
 
     await this.http
       .post(this.uploadData[ streamType ].url, formData)
+      .toPromise();
+  }
+
+  public async uploadChat(blob: Blob) {
+    const formData = new FormData();
+    Object.entries(this.chatUploadData.fields)
+      .forEach(([ key, value ]) => {
+        formData.append(key, value);
+    });
+    formData.append('file', blob);
+
+    await this.http
+      .post(this.chatUploadData.url, formData)
       .toPromise();
   }
 }
