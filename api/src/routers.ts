@@ -1,39 +1,59 @@
 import { NextFunction, Request, Response, Router } from 'express';
-import AWS from 'aws-sdk';
-import config from 'config';
-import { RecordingType, UploadRequestBody } from './models';
+import { S3 } from 'aws-sdk';
+import { RecordingType, UploadRequestBody } from './models/misc';
+import { uploadService } from './services/upload-service';
+import { errors } from './constants';
 
 export const uploadRouter = Router();
 
-AWS.config.update({ accessKeyId: config.get('aws.accessKeyId'), secretAccessKey: config.get('aws.secretAccessKey') });
-AWS.config.region = config.get('aws.region');
-const Bucket: string = config.get('aws.bucketName');
-
-uploadRouter.post('/', async (req: Request<{}, {}, UploadRequestBody, {}>,
-                        res: Response<AWS.S3.PresignedPost>,
+uploadRouter.post('/', (req: Request<{}, {}, UploadRequestBody, {}>,
+                        res: Response<S3.PresignedPost>,
                         next: NextFunction) => {
   try {
     const { peerId, recordingType, mimeType, roomId } = req.body;
     
-    if (!peerId) return next(new Error('Invalid parameter (peerId)'));
-    if (!roomId) return next(new Error('Invalid parameter (roomId)'));
-    if (!recordingType || !Object.values(RecordingType).includes(recordingType)) return next(new Error('Invalid parameter (roomId)'));
-    if (!mimeType) return next(new Error('Invalid parameter (mimeType)'));
+    if (!peerId) return next(errors.invalidParameter('peerId'));
+    if (!roomId) return next(errors.invalidParameter('roomId'));
+    if (!recordingType || !Object.values(RecordingType).includes(recordingType)) return next(errors.invalidParameter('roomId'));
+    if (!mimeType) return next(errors.invalidParameter('mimeType'));
     
-    const s3 = new AWS.S3();
-    const key = `meetings/${ roomId }/${ peerId }/${ recordingType }`;
+    const signedUrlObject = uploadService.getSignedUrl(roomId, mimeType, recordingType, peerId);
+    return res.status(200).json(signedUrlObject);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+uploadRouter.post('/chat', (req: Request<{}, {}, { roomId: string }, {}>,
+                            res: Response<S3.PresignedPost>,
+                            next: NextFunction) => {
+  try {
+    const { roomId } = req.body;
+    if (!roomId) return next(errors.invalidParameter('roomId'));
     
-    const signedUrlObj = s3.createPresignedPost({
-      Expires: 180, // 3h
-      Bucket,
-      Fields: {
-        'Content-Type': mimeType,
-        key,
-        acl: 'private'
-      },
-    })
+    const signedUrlObject = uploadService.getSignedUrl(roomId, 'text/csv;charset=utf-8', null);
+    return res.status(200).json(signedUrlObject);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+export const meetingsRouter = Router();
+
+meetingsRouter.post('/:meetingId', async (req: Request<{ meetingId: string }, {}, { token: string, password: string, timeout: number }>,
+                                          res: Response<{}>,
+                                          next: NextFunction) => {
+  try {
+    const { meetingId } = req.params;
+    if (!meetingId) return next(errors.invalidParameter('meetingId'));
     
-    return res.status(200).json(signedUrlObj);
+    const { token, password, timeout } = req.body;
+    if (!token) return next(errors.invalidParameter('token'));
+    if (!password) return next(errors.invalidParameter('password'));
+    if (!timeout) return next(errors.invalidParameter('timeout'));
+    
+    // await meetingService.setPassword(meetingId, token, password, timeout);
+    return res.status(200).json({ });
   } catch (err) {
     return next(err);
   }

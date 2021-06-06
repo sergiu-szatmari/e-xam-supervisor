@@ -4,9 +4,11 @@ import config from 'config';
 import { ExpressPeerServer } from 'peer';
 import { v4 as generateClientId } from 'uuid';
 import { green, yellow } from 'cli-color';
-import { uploadRouter } from './src/routers';
 import morgan from 'morgan';
-import { headers } from './src/middleware';
+
+import { meetingsRouter, uploadRouter } from './src/routers';
+import error from './src/middleware/error';
+import headers from './src/middleware/headers';
 
 const app = express();
 const server = http.createServer(app);
@@ -19,6 +21,8 @@ const peerServer = ExpressPeerServer(server, {
 
 peerServer.on('connection', (client) => {
   console.log(`New peer: `, client.getId());
+  console.log('Token: ', client.getToken());
+  // client.send('zzz');
 });
 
 app.use(peerServer);
@@ -28,8 +32,11 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use('/meetings', meetingsRouter);
 app.use('/upload', uploadRouter);
 app.get('/', (req: Request, res: Response) => res.status(200).json({ message: 'E-xam Supervisor API works' }));
+
+app.use(error);
 
 server.listen(port, () => {
   console.log(`Server is ${ green('up and running') } on port ${ yellow(port)}`);
