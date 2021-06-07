@@ -14,10 +14,10 @@ export class UploadService {
   constructor(protected http: HttpClient) { }
 
   public async init(roomId: string, peerId: string | null) {
-    const { uploadUrl } = environment.server;
+    const { baseUrl } = environment.server;
 
     if (peerId === null) { // Supervisor service uploads csv
-      const url = `${ uploadUrl }/chat`;
+      const url = `${ baseUrl }/upload/chat`;
 
       this.chatUploadData = await this.http
         .post<UploadResponse>(url, { roomId })
@@ -36,7 +36,7 @@ export class UploadService {
           };
 
           this.uploadData[ recordingType ] = await this.http
-            .post<UploadResponse>(uploadUrl, requestObj)
+            .post<UploadResponse>(`${ baseUrl }/upload`, requestObj)
             .toPromise()
         })
       );

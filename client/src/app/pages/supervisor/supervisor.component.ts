@@ -8,6 +8,10 @@ import { NbToastrService } from '@nebular/theme';
 import { StreamType } from '../../shared/models/stream';
 import { SharedEventsService } from '../../shared/services/shared-events.service';
 import { UploadService } from '../../shared/services/upload.service';
+import { MatDialog } from '@angular/material/dialog';
+import { SetPasswordDialogComponent } from './set-password-dialog/set-password-dialog.component';
+import { take } from 'rxjs/operators';
+import { MeetingService } from '../../shared/services/meeting.service';
 
 enum RoomView {
   grid = 'grid',
@@ -49,6 +53,8 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   constructor(
     protected toastr: NbToastrService,
     protected uploadService: UploadService,
+    protected dialog: MatDialog,
+    protected meetingService: MeetingService,
     public sharedEvents: SharedEventsService,
     public chatService: ChatService,
     public peerService: SupervisorPeerService,
@@ -70,13 +76,6 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       .subscribe(async (connected) => {
         if (!connected) return this.onLeaveRoom();
       })
-
-    this.sharedEvents
-      .backToGridViewRequest$
-      .pipe(untilDestroyed(this))
-      .subscribe(backToGrid => {
-        if (backToGrid) this.onBackToGrid();
-      });
 
     this.peerService.connections$
       .pipe(untilDestroyed(this))
@@ -107,8 +106,18 @@ export class SupervisorComponent implements OnInit, OnDestroy {
 
   public onCreateRoom() {
     this.peerService.connect();
-    this.sharedEvents.streaming = true;
-    setTimeout(async () => this.uploadService.init(this.peerService.peerId, null), 200);
+
+    this.dialog
+      .open(SetPasswordDialogComponent, {
+        disableClose: true,
+        autoFocus: true,
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe(async (result?: { password: string, timeout: number }) => {
+        await this.meetingService.setupPassword(this.peerService.peerId, result.password, result.timeout);
+        await this.uploadService.init(this.peerService.peerId, null);
+      })
   }
 
   public onCopyToClipBoard() {
@@ -172,7 +181,8 @@ export class SupervisorComponent implements OnInit, OnDestroy {
 
         this.peerService.disconnect();
         this.chatService.clear();
-        this.sharedEvents.streaming = false;
+
+        return this.meetingService.leaveRoom(this.peerService.peerId);
       }
     } catch (err) {
       this.toastr.danger(err.message);
@@ -203,7 +213,6 @@ export class SupervisorComponent implements OnInit, OnDestroy {
     this.focusedRemotePeerId = remotePeerId;
     this.focusedRemotePeerUsername = this.peerService.connections[ remotePeerId ].username;
     this.roomView = RoomView.focused;
-    this.sharedEvents.focusedView = true;
   }
 
   public onBackToGrid() {
@@ -219,7 +228,6 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       this.focusedRemotePeerId = null;
       this.focusedRemotePeerUsername = '';
       this.roomView = RoomView.grid;
-      this.sharedEvents.focusedView = false;
       this.userStream = null;
       this.screenStream = null;
     }, 500);

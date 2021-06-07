@@ -5,11 +5,11 @@ export const environment = {
     url: 'localhost',
     port: 8080,
     path: '/signal',
-    uploadUrl: 'http://localhost:8080/upload'
+    baseUrl: 'http://localhost:8080',
   },
 
   recording: {
-    enabled: false,
+    enabled: true,
     mimeType: 'video/webm;codecs=vp8'
   }
 };

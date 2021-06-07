@@ -10,6 +10,7 @@ import { StreamType } from '../../shared/models/stream';
 import { SharedEventsService } from '../../shared/services/shared-events.service';
 import { ActivatedRoute } from '@angular/router';
 import { take } from 'rxjs/operators';
+import { MeetingService } from '../../shared/services/meeting.service';
 
 enum RoomState {
   idle = 'idle',
@@ -31,6 +32,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   chatMessage = '';
   attendeeName = '';
   roomId: string;
+  password: string;
 
   roomStateSubject = new BehaviorSubject(RoomState.idle);
   public get roomState$() { return this.roomStateSubject.asObservable(); }
@@ -49,6 +51,7 @@ export class RoomComponent implements OnInit, OnDestroy {
     protected sharedEvents: SharedEventsService,
     protected cdr: ChangeDetectorRef,
     protected route: ActivatedRoute,
+    protected meetingService: MeetingService,
     public peerService: RoomPeerService,
     public mediaService: MediaService,
     public chatService: ChatService,
@@ -134,8 +137,16 @@ export class RoomComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isLoadingBtn = true;
-    this.peerService.connect(this.roomId, this.attendeeName);
+    try {
+      this.isLoadingBtn = true;
+
+      await this.meetingService.checkPassword(this.roomId, this.password);
+      this.peerService.connect(this.roomId, this.attendeeName);
+    } catch (err) {
+      this.toastr.danger(err.error?.message || err.message);
+      console.error(err);
+      this.isLoadingBtn = false;
+    }
   }
 
   public onLeaveRoom() {

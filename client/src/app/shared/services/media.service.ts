@@ -60,7 +60,7 @@ export class MediaService {
     this.remoteWebcamStream = this.webcamStream.clone();
     this.remoteScreenStream = this.screenStream.clone();
 
-    this.sharedEvents.streaming = true;
+    // this.sharedEvents.streaming = true;
   }
 
   public closeStreams() {
@@ -78,7 +78,7 @@ export class MediaService {
       stream?.getTracks().forEach(track => track.stop());
     });
 
-    this.sharedEvents.streaming = false;
+    // this.sharedEvents.streaming = false;
 
     this.webcamStream = null;
     this.screenStream = null;
