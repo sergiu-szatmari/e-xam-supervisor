@@ -6,9 +6,10 @@ import { v4 as generateClientId } from 'uuid';
 import { green, yellow } from 'cli-color';
 import morgan from 'morgan';
 
-import { meetingsRouter, uploadRouter } from './src/routers';
 import error from './src/middleware/error';
 import headers from './src/middleware/headers';
+import { apiRouter } from './src/routes';
+import mongoose from 'mongoose';
 
 const app = express();
 const server = http.createServer(app);
@@ -32,12 +33,18 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/meetings', meetingsRouter);
-app.use('/upload', uploadRouter);
-app.get('/', (req: Request, res: Response) => res.status(200).json({ message: 'E-xam Supervisor API works' }));
+app.use('/', apiRouter);
 
 app.use(error);
 
-server.listen(port, () => {
-  console.log(`Server is ${ green('up and running') } on port ${ yellow(port)}`);
-});
+const { dbConnectionUri } = config.get('server')
+mongoose
+  .connect(dbConnectionUri, {
+    useNewUrlParser: true, useUnifiedTopology: true,
+    useFindAndModify: false, useCreateIndex: true
+  })
+  .then(() => {
+    console.log(`Connected to ${ green('Mongo DB') }`);
+    server.listen(port, () => console.log(`Server is ${ green('up and running') } on port ${ yellow(port)}`));
+  })
+  .catch(console.error);

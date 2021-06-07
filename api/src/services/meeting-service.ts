@@ -1,20 +1,36 @@
 import bcrypt from 'bcrypt';
+import { MeetingModel } from '../models/meeting-model';
+import { errors } from '../constants';
 
 class MeetingService {
-  private static async hashPassword(password: string): Promise<string> {
-      const salt = await bcrypt.genSalt(10);
-      return bcrypt.hash(password, salt);
+  public async setMeetingPassword(roomId: string, password: string, timeout: number) {
+    const salt = await bcrypt.genSalt(10);
+    password = await bcrypt.hash(password, salt);
+    
+    const passwordExpireTs = new Date();
+    passwordExpireTs.setSeconds(passwordExpireTs.getSeconds() + timeout);
+    
+    return MeetingModel.findOneAndUpdate(
+      { roomId, password: { $exists: false } },
+      { $set: { password, timeout, passwordExpireTs } },
+      { new: true, upsert: true }
+    );
   }
   
-  public async setMeetingPassword(roomId: string, token: string, password: string, timeout: number) {
-    password = await MeetingService.hashPassword(password);
+  public async checkPassword(roomId: string, password: string) {
+    const meeting = await MeetingModel
+      .findOne({ roomId })
+      .select('+password')
+      .exec();
+    if (!meeting) throw errors.meetingNotFound;
     
-    const MeetingModel = { };
-    return (MeetingModel as any).findOneAndUpdate(
-      { roomId, token, password: { $exists: false } },
-      { $set: { password, timeout }, $unset: { token: 1 } },
-      { new: true }
-    );
+    const passwordsMatch = await bcrypt.compare(password, meeting.password!);
+    if (!passwordsMatch) throw errors.invalidMeetingPassword;
+    
+    const expired = new Date(meeting.passwordExpireTs!);
+    if (expired.getTime() < new Date().getTime()) throw errors.meetingPasswordExpired;
+    
+    return true;
   }
 }
 

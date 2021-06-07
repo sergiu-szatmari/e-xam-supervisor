@@ -3,7 +3,6 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface Meeting extends Document {
   roomId: string;
   password?: string;
-  token?: string;
   timeout?: number;
   passwordExpireTs?: Date;
 }
@@ -15,10 +14,6 @@ const meetingSchema = new Schema({
   },
   
   password: {
-    type: String,
-  },
-  
-  token: {
     type: String,
   },
   
