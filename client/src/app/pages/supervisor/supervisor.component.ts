@@ -12,6 +12,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { SetPasswordDialogComponent } from './set-password-dialog/set-password-dialog.component';
 import { take } from 'rxjs/operators';
 import { MeetingService } from '../../shared/services/meeting.service';
+import { environment } from '../../../environments/environment';
 
 enum RoomView {
   grid = 'grid',
@@ -116,7 +117,11 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       .pipe(take(1))
       .subscribe(async (result?: { password: string, timeout: number }) => {
         await this.meetingService.setupPassword(this.peerService.peerId, result.password, result.timeout);
-        await this.uploadService.init(this.peerService.peerId, null);
+
+        const isRecordingEnabled = environment.recording.enabled;
+        if (isRecordingEnabled) {
+          await this.uploadService.init(this.peerService.peerId, null);
+        }
       })
   }
 
@@ -176,8 +181,11 @@ export class SupervisorComponent implements OnInit, OnDestroy {
   public async onLeaveRoom() {
     try {
       if (this.peerService.peerId) {
-        const csv = this.chatService.exportToCsv();
-        await this.uploadService.uploadChat(csv);
+
+        if (environment.recording.enabled) {
+          const csv = this.chatService.exportToCsv();
+          await this.uploadService.uploadChat(csv);
+        }
 
         this.peerService.disconnect();
         this.chatService.clear();
