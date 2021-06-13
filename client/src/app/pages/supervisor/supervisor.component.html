@@ -23,8 +23,8 @@
 
     <ng-template #focusedViewTemplate>
       <div class="focused-view-container">
-        <video autoplay muted [srcObject]="userStream"></video>
-        <video autoplay muted [srcObject]="screenStream"></video>
+        <video id="user-stream-video" autoplay muted [srcObject]="userStream"></video>
+        <video id="screen-stream-video" autoplay muted [srcObject]="screenStream"></video>
       </div>
     </ng-template>
 

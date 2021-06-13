@@ -227,19 +227,35 @@
 
     /* Focused View Template */
     .focused-view-container {
+      width: 100%;
+      position: relative;
+
       display: flex;
       flex-direction: column;
       align-self: center;
       justify-content: space-evenly;
 
-      // height: 100vh;
       height: 100%;
-      // max-height: 100vh;
       max-height: 100%;
 
       &.hidden { display: none; }
 
-      video { max-height: 40vh; height: 40vh; }
+      //video { max-height: 40vh; height: 40vh; }
+      video { position: absolute; }
+
+      video#user-stream-video {
+        bottom: 32px;
+        right: 32px;
+        max-width: 400px;
+        z-index: 2;
+        border: 2px solid #333;
+      }
+
+      video#screen-stream-video {
+        max-width: 100%;
+        max-height: 100%;
+      }
+
       app-video-container { max-height: 40vh; height: 40vh; }
     }
 
