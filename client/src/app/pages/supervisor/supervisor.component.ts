@@ -118,8 +118,7 @@ export class SupervisorComponent implements OnInit, OnDestroy {
       .subscribe(async (result?: { password: string, timeout: number }) => {
         await this.meetingService.setupPassword(this.peerService.peerId, result.password, result.timeout);
 
-        const isRecordingEnabled = environment.recording.enabled;
-        if (isRecordingEnabled) {
+        if (environment.recording.enabled) {
           await this.uploadService.init(this.peerService.peerId, null);
         }
       })
@@ -187,10 +186,9 @@ export class SupervisorComponent implements OnInit, OnDestroy {
           await this.uploadService.uploadChat(csv);
         }
 
+        await this.meetingService.leaveRoom(this.peerService.peerId);
         this.peerService.disconnect();
         this.chatService.clear();
-
-        return this.meetingService.leaveRoom(this.peerService.peerId);
       }
     } catch (err) {
       this.toastr.danger(err.message);

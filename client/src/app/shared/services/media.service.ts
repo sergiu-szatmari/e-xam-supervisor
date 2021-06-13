@@ -35,8 +35,7 @@ export class MediaService {
     // but it cannot be found in the official WebRTC typedef files
     this.screenStream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: { deviceId: 1 } });
 
-    const isRecordingEnabled = environment.recording.enabled;
-    if (isRecordingEnabled) {
+    if (environment.recording.enabled) {
 
       const { mimeType } = environment.recording;
       if (!SupportedRecordRTCMimeTypes.includes(mimeType)) throw new Error('Invalid mimeType for RecordRTC object');

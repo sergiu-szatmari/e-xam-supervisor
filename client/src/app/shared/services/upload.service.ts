@@ -16,14 +16,16 @@ export class UploadService {
   public async init(roomId: string, peerId: string | null) {
     const { baseUrl } = environment.server;
 
-    if (peerId === null) { // Supervisor service uploads csv
-      const url = `${ baseUrl }/upload/chat`;
+    if (peerId === null) {
+      // Supervisor service uploads csv
+      const url = `${ baseUrl }/upload/${ roomId }/chat`;
 
       this.chatUploadData = await this.http
         .post<UploadResponse>(url, { roomId })
         .toPromise();
 
-    } else { // Attendee service uploads stream
+    } else {
+      // Attendee service uploads stream
       let { mimeType } = environment.recording;
       if (mimeType.includes(';')) [ mimeType ] = mimeType.split(';');
 
@@ -36,7 +38,7 @@ export class UploadService {
           };
 
           this.uploadData[ recordingType ] = await this.http
-            .post<UploadResponse>(`${ baseUrl }/upload`, requestObj)
+            .post<UploadResponse>(`${ baseUrl }/upload/${ roomId }`, requestObj)
             .toPromise()
         })
       );

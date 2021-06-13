@@ -100,7 +100,8 @@ export class RoomComponent implements OnInit, OnDestroy {
               const msg = 'You have to enable webcam, microphone and screen sharing access in order to join the room';
               this.toastr.warning(msg);
             }
-            this.onLeaveRoom();
+            await this.onLeaveRoom();
+
             this.roomStateSubject.next(RoomState.idle);
           } finally {
             this.isLoadingBtn = null;
@@ -140,7 +141,7 @@ export class RoomComponent implements OnInit, OnDestroy {
     try {
       this.isLoadingBtn = true;
 
-      await this.meetingService.checkPassword(this.roomId, this.password);
+      await this.meetingService.checkPassword(this.roomId, this.attendeeName, this.password);
       this.peerService.connect(this.roomId, this.attendeeName);
     } catch (err) {
       this.toastr.danger(err.error?.message || err.message);
@@ -149,7 +150,9 @@ export class RoomComponent implements OnInit, OnDestroy {
     }
   }
 
-  public onLeaveRoom() {
+  public async onLeaveRoom() {
+    await this.meetingService.leaveRoom(this.roomId);
+
     this.peerService.disconnect();
     this.chatService.clear();
     this.mediaService.closeStreams();

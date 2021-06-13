@@ -4,12 +4,12 @@ export const environment = {
   server: {
     url: 'localhost',
     port: 8080,
-    path: '/signal',
+    signallingPath: '/peer/signal',
     baseUrl: 'http://localhost:8080',
   },
 
   recording: {
-    enabled: true,
+    enabled: false,
     mimeType: 'video/webm;codecs=vp8'
   }
 };

@@ -6,12 +6,15 @@ import { uploadService } from '../../services/upload-service';
 
 class UploadController {
   
-  public requestSignedURL = (req: Request<{}, {}, UploadRequestBody, {}>,
+  public requestSignedURL = (req: Request<{ meetingId: string }, {}, UploadRequestBody, {}>,
                              res: Response<S3.PresignedPost>,
                              next: NextFunction) => {
     try {
+      const { meetingId } = req.params;
       const { peerId, recordingType, mimeType, roomId } = req.body;
     
+      if (meetingId !== roomId) return next(errors.invalidParameter('roomId'));
+      
       if (!peerId) return next(errors.invalidParameter('peerId'));
       if (!roomId) return next(errors.invalidParameter('roomId'));
       if (!recordingType || !Object.values(RecordingType).includes(recordingType)) return next(errors.invalidParameter('roomId'));
@@ -24,13 +27,16 @@ class UploadController {
     }
   }
   
-  public requestSignedURLForChat = (req: Request<{}, {}, { roomId: string }, {}>,
+  public requestSignedURLForChat = (req: Request<{ meetingId: string }, {}, { roomId: string }, {}>,
                                     res: Response<S3.PresignedPost>,
                                     next: NextFunction) => {
     try {
+      const { meetingId } = req.params;
       const { roomId } = req.body;
       if (!roomId) return next(errors.invalidParameter('roomId'));
   
+      if (meetingId !== roomId) return next(errors.invalidParameter('roomId'));
+      
       const signedUrlObject = uploadService.getSignedUrl(roomId, 'text/csv;charset=utf-8', null);
       return res.status(200).json(signedUrlObject);
     } catch (err) {

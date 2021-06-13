@@ -9,6 +9,8 @@ import { SharedModule } from './shared/shared.module';
 import { LayoutModule } from '@angular/cdk/layout';
 import { NgxPicaModule } from '@digitalascetic/ngx-pica';
 import { AboutComponent } from './pages/about/about.component';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { JwtInterceptor } from './shared/services/jwt.interceptor';
 
 @NgModule({
   declarations: [
@@ -31,7 +33,9 @@ import { AboutComponent } from './pages/about/about.component';
     NbDatepickerModule.forRoot(),
     NgxPicaModule,
   ],
-  providers: [ ],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+  ],
   bootstrap: [ AppComponent ]
 })
 export class AppModule {

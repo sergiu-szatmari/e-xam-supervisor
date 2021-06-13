@@ -27,7 +27,7 @@ export class SupervisorPeerService {
   ) { }
 
   public connect() {
-    const { url, path, port } = environment.server;
+    const { url, signallingPath: path, port } = environment.server;
     const secure = environment.production;
 
     this.peer = new Peer({

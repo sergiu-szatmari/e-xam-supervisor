@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { MeetingModel } from '../models/meeting-model';
 import { errors } from '../constants';
+import { AuthTokenModel } from '../models/auth-token-model';
 
 class MeetingService {
   public async setMeetingPassword(roomId: string, password: string, timeout: number) {
@@ -29,6 +30,17 @@ class MeetingService {
     
     const expired = new Date(meeting.passwordExpireTs!);
     if (expired.getTime() < new Date().getTime()) throw errors.meetingPasswordExpired;
+    
+    return true;
+  }
+  
+  public async leaveRoom(roomId: string, jwt: string) {
+    await AuthTokenModel.deleteOne({
+      room: roomId, jwt
+    });
+    
+    const roomMembersCount = await AuthTokenModel.countDocuments({ room: roomId });
+    if (!roomMembersCount) await MeetingModel.deleteOne({ roomId });
     
     return true;
   }

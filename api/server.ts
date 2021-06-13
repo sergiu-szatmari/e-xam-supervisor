@@ -20,19 +20,26 @@ const peerServer = ExpressPeerServer(server, {
   generateClientId
 });
 
+peerServer.on('message', (client, msg) => {
+  // console.log({ client, msg });
+})
+
 peerServer.on('connection', (client) => {
   console.log(`New peer: `, client.getId());
   console.log('Token: ', client.getToken());
   // client.send('zzz');
 });
 
-app.use(peerServer);
 
 app.use(headers);
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use('/peer',
+  (req: Request, res, next) => { if (!req.headers['custom_field']) console.log('Custom field not found'); return next(); },
+  peerServer
+);
 app.use('/', apiRouter);
 
 app.use(error);
