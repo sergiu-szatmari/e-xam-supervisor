@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { Exception, GenericError } from '../models/exception';
 import mongoose from 'mongoose';
 
-export default (err: Error, req: Request, res: Response) => {
+export default (err: Error, req: Request, res: Response, next: NextFunction) => {
   
   const code = String((err as any)?.code) || err.name || 'Unknown';
   let error: GenericError = {
