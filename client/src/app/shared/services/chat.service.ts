@@ -14,7 +14,6 @@ export class ChatService {
   constructor() { }
 
   public newMessage(message: ChatMessage) {
-    // TODO: Validate chat message
     this.chatMessages.push(message);
     this.chatMessageSubject.next(this.chatMessages);
   }

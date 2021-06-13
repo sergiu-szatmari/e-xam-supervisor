@@ -52,6 +52,7 @@ export class SupervisorPeerService {
     return true;
   }
 
+  // Peer handlers
   public onPeerOpen = () => {
     this.peerId = this.peer.id;
 
@@ -74,7 +75,6 @@ export class SupervisorPeerService {
         calls: []
       };
 
-      console.log({ connections: this.connections });
       this.connectionsSubject.next(this.connections);
     }
     connection.on('close', this.onConnectionClose(connection.peer));
@@ -96,9 +96,6 @@ export class SupervisorPeerService {
       const type = call.metadata;
       this.connections[ remotePeerId ].streams.push({ type, stream: remoteStream });
       this.connectionsSubject.next(this.connections);
-
-      console.log(`${ remotePeerId }`);
-      console.log(`${ call.metadata } stream -> ${ (call as any).remoteStream.id }`);
     });
 
     call.on('close', () => {
@@ -178,7 +175,7 @@ export class SupervisorPeerService {
 
           // Bad sender
           if (!this.connections[ from.peerId ]) {
-            console.log(`Message from unknown peer (${ from.peerId })`);
+            console.error(`Message from unknown peer (${ from.peerId })`);
             return;
           }
 
@@ -195,44 +192,48 @@ export class SupervisorPeerService {
     for (const remotePeerId in this.connections) {
       if (this.connections.hasOwnProperty(remotePeerId)) {
 
-        const { username, dataConnection } = this.connections[ remotePeerId ];
-        dataConnection?.send(Message.create({
-          type: Events.chatMessage,
-          payload: {
-            from: { peerId: this.peerId, username: 'Supervisor' },
-            to: { peerId: remotePeerId, username },
-            message: chatMessage,
-            type: MessageType.broadcast,
-            ts: new Date()
-          }
-        }));
+        const { username } = this.connections[ remotePeerId ];
+        this.connections[ remotePeerId ]
+          ?.dataConnection
+          ?.send(Message.create({
+            type: Events.chatMessage,
+            payload: {
+              from: { peerId: this.peerId, username: 'Supervisor' },
+              to: { peerId: remotePeerId, username },
+              message: chatMessage,
+              type: MessageType.broadcast,
+              ts: new Date()
+            }
+          }));
       }
     }
   }
 
   public sendChatMessage(peerId: string, chatMessage) {
-    const { username, dataConnection } = this.connections[ peerId ];
+    const { username } = this.connections[ peerId ];
 
-    dataConnection?.send(
-      Message.create({
-        type: Events.chatMessage,
-        payload: {
-          from: { peerId: this.peerId, username: 'Supervisor' },
-          to: { peerId, username },
-          message: chatMessage,
-          type: MessageType.chat,
-          ts: new Date()
-        }
-      })
-    );
+    this.connections[ peerId ]
+      ?.dataConnection
+      ?.send(
+        Message.create({
+          type: Events.chatMessage,
+          payload: {
+            from: { peerId: this.peerId, username: 'Supervisor' },
+            to: { peerId, username },
+            message: chatMessage,
+            type: MessageType.chat,
+            ts: new Date()
+          }
+        })
+      );
   }
 
   public requestScreenStream(peerId: string) {
     if (!this.connections[ peerId ]) return;
 
     this.connections[ peerId ]
-      .dataConnection
-      .send(Message.create({
+      ?.dataConnection
+      ?.send(Message.create({
         type: Events.streamToggle,
         payload: {
           from: this.peerId,
@@ -245,8 +246,8 @@ export class SupervisorPeerService {
   public toggleStreams(peerIds: string[], options: StreamOptions, toggle: boolean) {
     peerIds.forEach(peerId => {
       this.connections[ peerId ]
-        .dataConnection
-        .send(Message.create({
+        ?.dataConnection
+        ?.send(Message.create({
           type: Events.streamToggle,
           payload: {
             from: this.peerId,

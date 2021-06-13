@@ -8,32 +8,36 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class MeetingService {
 
-  constructor(protected http: HttpClient) { }
+  baseUrl: string;
 
   private tokenSubject = new BehaviorSubject(null);
   public get token$() { return this.tokenSubject.asObservable(); }
 
+  constructor(protected http: HttpClient) {
+    this.baseUrl = environment.server.baseUrl;
+  }
+
   public async setupPassword(roomId: string, password: string, timeout: number) {
-    const { baseUrl } = environment.server;
     const { authToken } = await this.http
-      .put<{ authToken: string }>(`${ baseUrl }/meetings/${ roomId }`, { password, timeout })
+      .put<{ authToken: string }>(`${ this.baseUrl }/meetings/${ roomId }`, { password, timeout })
       .toPromise();
+
     this.tokenSubject.next(authToken);
   }
 
   public async checkPassword(roomId: string, username: string, password: string) {
-    const { baseUrl } = environment.server;
     const { authToken } = await this.http
-      .post<{ authToken: string }>(`${ baseUrl }/meetings/${ roomId }`, { username, password })
+      .post<{ authToken: string }>(`${ this.baseUrl }/meetings/${ roomId }`, { username, password })
       .toPromise();
+
     this.tokenSubject.next(authToken);
   }
 
   public async leaveRoom(roomId: string) {
-    const { baseUrl } = environment.server;
     await this.http
-      .delete<{ }>(`${ baseUrl }/meetings/${ roomId }`)
+      .delete<{ }>(`${ this.baseUrl }/meetings/${ roomId }`)
       .toPromise();
+
     this.tokenSubject.next(null);
   }
 }

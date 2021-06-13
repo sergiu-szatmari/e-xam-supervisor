@@ -35,9 +35,7 @@ class MeetingService {
   }
   
   public async leaveRoom(roomId: string, jwt: string) {
-    await AuthTokenModel.deleteOne({
-      room: roomId, jwt
-    });
+    await AuthTokenModel.deleteOne({ room: roomId, jwt });
     
     const roomMembersCount = await AuthTokenModel.countDocuments({ room: roomId });
     if (!roomMembersCount) await MeetingModel.deleteOne({ roomId });

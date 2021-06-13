@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { NbToastrService } from '@nebular/theme';
-import { MeetingService } from '../../../shared/services/meeting.service';
 import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({

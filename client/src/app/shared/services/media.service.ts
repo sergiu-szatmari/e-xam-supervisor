@@ -45,7 +45,7 @@ export class MediaService {
       const options = (type: StreamType): any => ({
         type: 'video',
         mimeType,
-        timeSlice: 2000,
+        timeSlice: 2000, // 2s
         ondataavailable: async (blob: Blob) =>
           this.uploadService.upload(type, blob)
       });
@@ -58,8 +58,6 @@ export class MediaService {
 
     this.remoteWebcamStream = this.webcamStream.clone();
     this.remoteScreenStream = this.screenStream.clone();
-
-    // this.sharedEvents.streaming = true;
   }
 
   public closeStreams() {
@@ -76,8 +74,6 @@ export class MediaService {
     ].forEach((stream) => {
       stream?.getTracks().forEach(track => track.stop());
     });
-
-    // this.sharedEvents.streaming = false;
 
     this.webcamStream = null;
     this.screenStream = null;

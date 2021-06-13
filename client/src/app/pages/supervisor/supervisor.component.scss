@@ -240,23 +240,22 @@
 
       &.hidden { display: none; }
 
-      //video { max-height: 40vh; height: 40vh; }
-      video { position: absolute; }
+      video {
+        position: absolute;
 
-      video#user-stream-video {
-        bottom: 32px;
-        right: 32px;
-        max-width: 400px;
-        z-index: 2;
-        border: 2px solid #333;
+        &#user-stream-video {
+          bottom: 32px;
+          right: 32px;
+          max-width: 400px;
+          z-index: 2;
+          border: 2px solid #333;
+        }
+
+        &#screen-stream-video {
+          max-width: 100%;
+          max-height: 100%;
+        }
       }
-
-      video#screen-stream-video {
-        max-width: 100%;
-        max-height: 100%;
-      }
-
-      app-video-container { max-height: 40vh; height: 40vh; }
     }
 
     button.back-to-grid-btn {

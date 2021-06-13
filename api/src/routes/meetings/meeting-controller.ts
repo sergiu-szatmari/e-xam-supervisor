@@ -49,7 +49,6 @@ class MeetingController {
     try {
       const { meetingId } = req.params;
       
-      // @ts-ignore
       await meetingService.leaveRoom(meetingId, req.authToken!)
       return res.status(200).json({ });
     } catch (err) {

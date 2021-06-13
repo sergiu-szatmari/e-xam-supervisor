@@ -69,14 +69,10 @@ export class RoomPeerService {
     switch (streamType) {
       case StreamType.user:
         this.userCall = this.peer.call(this.roomId, stream, { metadata: StreamType.user });
-        console.log(`initiateCall`, this.userCall);
-        this.userCall.on('close', () => { console.log('Call closed'); });
         break;
 
       case StreamType.screen:
         this.screenCall = this.peer.call(this.roomId, stream, { metadata: StreamType.screen });
-        console.log(`initiateCall`, this.screenCall);
-        this.screenCall.on('close', () => { console.log('Call closed'); });
         break;
 
       default:
@@ -105,7 +101,6 @@ export class RoomPeerService {
 
   public onConnectionData = async (data) => {
     const { type, payload } = Message.parse(data);
-    console.log(`Message received (${ type })`, payload);
 
     switch (type) {
       case Events.chatMessage: {

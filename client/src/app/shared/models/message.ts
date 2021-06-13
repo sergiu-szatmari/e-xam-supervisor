@@ -15,9 +15,6 @@ export interface ChatMessage {
     peerId: string;
     username: string;
   }
-  // from: string; // Peer ID
-  // to: string; // Peer ID
-  // username: string;
   message: string;
   type: MessageType;
   ts: Date;

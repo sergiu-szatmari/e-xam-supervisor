@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ChatMessage, MessageType } from '../../shared/models/message';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SupervisorPeerService } from '../../shared/services/supervisor-peer.service';
@@ -98,6 +98,10 @@ export class SupervisorComponent implements OnInit, OnDestroy {
           });
 
         this.streams = streams;
+
+        if (this.focusedRemotePeerId && !this.streams.find(stream => stream.peerId === this.focusedRemotePeerId)) {
+          this.onBackToGrid();
+        }
       });
   }
 
