@@ -25,8 +25,8 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/peer', peerServer);
 app.use('/', apiRouter);
+app.use('/peer', peerServer);
 app.use(error);
 
 const { dbConnectionUri } = config.get('server')
