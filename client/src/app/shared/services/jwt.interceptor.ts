@@ -21,7 +21,7 @@ export class JwtInterceptor implements HttpInterceptor {
         take(1),
         mergeMap(token => {
           let { headers } = request;
-          if (token) {
+          if (token && !request.url.includes('amazonaws.com')) {
             headers = headers.append('Authorization', `Bearer ${ token }`);
           }
 

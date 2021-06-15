@@ -30,3 +30,9 @@ export async function auth(req: Request<{ meetingId: string }, any, any, any>,
   req.authToken = token;
   return next();
 }
+
+export async function recordingEnabled(req: Request, res: Response, next: NextFunction) {
+  const { isRecordingEnabled = false } = config.get('server');
+  if (!isRecordingEnabled) return next(errors.disabledUploads);
+  return next();
+}

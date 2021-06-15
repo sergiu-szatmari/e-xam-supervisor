@@ -46,6 +46,8 @@ export class UploadService {
   }
 
   public async upload(streamType: StreamType, blob?: Blob) {
+    if (!this.uploadData[ streamType ]) return;
+
     const formData = new FormData();
     Object.entries(this.uploadData[ streamType ].fields).forEach(([ key, value ]) => {
       formData.append(key, value);
@@ -58,6 +60,8 @@ export class UploadService {
   }
 
   public async uploadChat(blob: Blob) {
+    if (!this.chatUploadData) return;
+
     const formData = new FormData();
     Object.entries(this.chatUploadData.fields)
       .forEach(([ key, value ]) => {

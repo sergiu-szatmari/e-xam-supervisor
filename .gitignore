@@ -2,3 +2,4 @@
 .vscode/
 api/config/*
 !api/config/sample.js
+client/src/environments/environment.prod.ts

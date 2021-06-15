@@ -9,7 +9,7 @@ export const environment = {
   },
 
   recording: {
-    enabled: false,
+    enabled: true,
     mimeType: 'video/webm;codecs=vp8'
   }
 };

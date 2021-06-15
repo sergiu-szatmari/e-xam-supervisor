@@ -7,6 +7,7 @@ export const errors = {
   invalidMeetingPassword: new Exception(422, 'InvalidMeetingPassword', 'The meeting password is invalid'),
   meetingPasswordExpired: new Exception(422, 'MeetingPasswordExpired', 'The meeting password has expired'),
   meetingNotFound: new Exception(404, 'MeetingNotFound', 'The requested meeting was not found'),
+  disabledUploads: new Exception(403, 'DisabledUploads', 'The S3 uploads are currently disabled'),
   
   invalidParameter: (param: string) => new Exception(422, 'InvalidParameter', `Missing or invalid parameter "${ param }"`)
 }

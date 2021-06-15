@@ -189,8 +189,8 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   public scrollToBottom() {
     const scroll = () => {
-      const top = this.messagesBox.nativeElement.scrollHeight;
-      this.messagesBox.nativeElement.scroll({ top, behaviour: 'smooth' });
+      const top = this.messagesBox?.nativeElement.scrollHeight;
+      this.messagesBox?.nativeElement.scroll({ top, behaviour: 'smooth' });
     };
 
     if (this.messagesBox) setTimeout(scroll, 1);

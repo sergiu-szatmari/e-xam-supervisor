@@ -3,7 +3,6 @@ import { StreamType, SupportedRecordRTCMimeTypes } from '../models/stream';
 import RecordRTC from 'recordrtc';
 import { environment } from '../../../environments/environment';
 import { UploadService } from './upload.service';
-import { SharedEventsService } from './shared-events.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,10 +18,7 @@ export class MediaService {
   private webcamRecorder: RecordRTC;
   private screenRecorder: RecordRTC;
 
-  constructor(
-    protected uploadService: UploadService,
-    protected sharedEvents: SharedEventsService,
-  ) { }
+  constructor(protected uploadService: UploadService) { }
 
   public peerId: string;
   public roomId: string;
@@ -40,20 +36,24 @@ export class MediaService {
       const { mimeType } = environment.recording;
       if (!SupportedRecordRTCMimeTypes.includes(mimeType)) throw new Error('Invalid mimeType for RecordRTC object');
 
-      await this.uploadService.init(this.roomId, this.peerId);
+      try {
+        await this.uploadService.init(this.roomId, this.peerId);
 
-      const options = (type: StreamType): any => ({
-        type: 'video',
-        mimeType,
-        timeSlice: 2000, // 2s
-        ondataavailable: async (blob: Blob) =>
-          this.uploadService.upload(type, blob)
-      });
-      this.webcamRecorder = new RecordRTC(this.webcamStream, { ...options(StreamType.user) });
-      this.screenRecorder = new RecordRTC(this.screenStream, { ...options(StreamType.screen) });
+        const options = (type: StreamType): any => ({
+          type: 'video',
+          mimeType,
+          timeSlice: 2000, // 2s
+          ondataavailable: async (blob: Blob) =>
+            this.uploadService.upload(type, blob)
+        });
+        this.webcamRecorder = new RecordRTC(this.webcamStream, { ...options(StreamType.user) });
+        this.screenRecorder = new RecordRTC(this.screenStream, { ...options(StreamType.screen) });
 
-      this.webcamRecorder.startRecording();
-      this.screenRecorder.startRecording();
+        this.webcamRecorder.startRecording();
+        this.screenRecorder.startRecording();
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     this.remoteWebcamStream = this.webcamStream.clone();
