@@ -24,12 +24,12 @@ export class MediaService {
   public roomId: string;
 
   public async loadStreams() {
-    this.webcamStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    this.webcamStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
 
     // @ts-ignore; used for suppressing some errors.
     // ".getDisplayMedia" is provided by the 'webrtc-adapter'
     // but it cannot be found in the official WebRTC typedef files
-    this.screenStream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: { deviceId: 1 } });
+    this.screenStream = await navigator.mediaDevices.getDisplayMedia({ audio: false, video: { deviceId: 1 } });
 
     if (environment.recording.enabled) {
 
