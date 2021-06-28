@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import http from 'http';
 import config from 'config';
 import { ExpressPeerServer } from 'peer';
@@ -25,6 +25,10 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// "Wake up" signal endpoint (Heroku deployment)
+app.get('/wake-up', (req: Request, res: Response) => res.status(200).json({ message: `I'm awake` }));
+
+// Routes
 app.use('/', apiRouter);
 app.use('/peer', peerServer);
 app.use(error);

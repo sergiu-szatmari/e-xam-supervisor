@@ -1,4 +1,4 @@
-<nb-layout>
+<nb-layout *ngIf="isAppReady">
   <nb-layout-column>
     <mat-sidenav-container autosize>
       <mat-sidenav *ngIf="!(sharedEvents.connected$ | async)" #menuSidenav

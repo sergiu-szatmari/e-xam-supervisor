@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import 'webrtc-adapter';
 import { SharedEventsService } from './shared/services/shared-events.service';
 import { UntilDestroy } from '@ngneat/until-destroy';
@@ -9,10 +9,18 @@ import { UntilDestroy } from '@ngneat/until-destroy';
   templateUrl: './app.component.html',
   styleUrls: [ './app.component.scss' ],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
 
   @ViewChild('menuSidenav')
   menuDrawer: ElementRef;
 
+  isAppReady = false;
+
   constructor(public sharedEvents: SharedEventsService) { }
+
+  public ngOnInit(): void {
+    this.sharedEvents
+      .wakeUpServer()
+      .then((isServerUp) => this.isAppReady = isServerUp);
+  }
 }
