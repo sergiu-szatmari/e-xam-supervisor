@@ -4,7 +4,7 @@ Web application used for supervising online-conducted exams. Based on _WebRTC_ p
 
 Created using _Angular 11_ & [_Peerjs_](https://github.com/peers/peerjs) (client app) and _Node.js_ & [_Peerjs-server_](https://github.com/peers/peerjs-server) (backend). 
 
-### [Live Demo](https://e-xam-supervisor.web.app)
+<!-- ### [Live Demo](https://e-xam-supervisor.web.app) -->
 
 ### Supervisor app
 
